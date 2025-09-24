@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class AnnouncementController extends Controller
+{
+    //
+    public function index() {
+    // عرض قائمة
+}
+
+public function create() {
+    // عرض نموذج إنشاء
+}
+
+public function store(Request $request) {
+    // تخزين بيانات جديدة
+}
+
+public function show($id) {
+    // عرض بيانات محددة
+}
+
+public function edit($id) {
+    // عرض نموذج تعديل
+}
+
+public function update(Request $request, $id) {
+    // تحديث بيانات
+}
+
+public function destroy($id) {
+    // حذف بيانات
+}
+
+}
