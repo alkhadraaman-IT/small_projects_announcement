@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users');
             $table->string('store_name');
-            $table->integer('store_phone');
+            $table->string('store_phone');
             $table->string('store_place');
             $table->foreignId('class_id')->constrained('store_classes');
             $table->string('store_description');

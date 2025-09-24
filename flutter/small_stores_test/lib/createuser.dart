@@ -1,12 +1,20 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:local_auth/local_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 
+import 'apiService/api_service.dart';
+import 'apiService/auth_service_api.dart';
+import 'apiService/user_api.dart';
 import 'mainpageuser.dart';
 import 'style.dart';
 import 'variables.dart';
+import 'models/usermodel.dart'; // تأكد من استيراد نموذج User
 
 class CreateUser extends StatefulWidget {
   @override
@@ -19,13 +27,21 @@ class _CreateUser extends State<CreateUser> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passWordController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _planController = TextEditingController();
 
   bool isPasswordVisible = false;
   bool _isFingerprintAdded = false;
   File? _fingerprintImage;
   final LocalAuthentication _localAuth = LocalAuthentication();
   final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
+  final ApiService apiService = ApiService(client: http.Client());
+  late UserApi userApi;
+
+  @override
+  void initState() {
+    super.initState();
+    userApi = UserApi(apiService: apiService);
+  }
 
   @override
   void dispose() {
@@ -34,13 +50,29 @@ class _CreateUser extends State<CreateUser> {
     _emailController.dispose();
     _passWordController.dispose();
     _phoneController.dispose();
-    _planController.dispose();
     super.dispose();
+  }
+
+  // دالة لحفظ بيانات المستخدم في الذاكرة المحلية
+  Future<void> _saveUserData(User user, String token) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      await prefs.setInt('user_id', user.id);
+      await prefs.setString('user_name', user.name);
+      await prefs.setString('user_email', user.email);
+      await prefs.setString('user_phone', user.phone);
+      await prefs.setString('user_token', token);
+
+      print('تم حفظ بيانات المستخدم في الذاكرة المحلية');
+    } catch (e) {
+      print('خطأ في حفظ البيانات: $e');
+      throw Exception('فشل في حفظ بيانات المستخدم محلياً');
+    }
   }
 
   Future<void> _addFingerprint() async {
     try {
-      // 1. التحقق من توفر البصمة على الجهاز
       final bool canAuthenticate = await _localAuth.canCheckBiometrics ||
           await _localAuth.isDeviceSupported();
 
@@ -51,7 +83,6 @@ class _CreateUser extends State<CreateUser> {
         return;
       }
 
-      // 2. التقاط صورة للبصمة (اختياري)
       final pickedImage = await ImagePicker().pickImage(source: ImageSource.camera);
       if (pickedImage != null) {
         setState(() {
@@ -59,7 +90,6 @@ class _CreateUser extends State<CreateUser> {
         });
       }
 
-      // 3. طلب المصادقة بالبصمة
       final bool didAuthenticate = await _localAuth.authenticate(
         localizedReason: 'المس مستشعر البصمة للتسجيل',
         options: const AuthenticationOptions(
@@ -86,8 +116,9 @@ class _CreateUser extends State<CreateUser> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(app_name, style: style_name_app_o),
+        title: Text(app_name, style: style_name_app_o(color_main)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -100,8 +131,6 @@ class _CreateUser extends State<CreateUser> {
                 children: [
                   image_login,
                   SizedBox(height: 16),
-                  Text(app_name, style: style_name_app_o),
-                  SizedBox(height: 16),
                   Text(a_createuser_s, style: style_text_titel),
                   SizedBox(height: 16),
                   TextFormField(
@@ -112,8 +141,8 @@ class _CreateUser extends State<CreateUser> {
                     ),
                     keyboardType: TextInputType.name,
                     inputFormatters: [
-                      LengthLimitingTextInputFormatter(25), // تحديد عدد المحارف
-                      FilteringTextInputFormatter.deny(RegExp(r'[0-9]')), // يمنع الأرقام
+                      LengthLimitingTextInputFormatter(25),
+                      FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
                     ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -131,8 +160,8 @@ class _CreateUser extends State<CreateUser> {
                     ),
                     keyboardType: TextInputType.name,
                     inputFormatters: [
-                      LengthLimitingTextInputFormatter(25), // تحديد عدد المحارف
-                      FilteringTextInputFormatter.deny(RegExp(r'[0-9]')), // يمنع الأرقام
+                      LengthLimitingTextInputFormatter(25),
+                      FilteringTextInputFormatter.deny(RegExp(r'[0-9]')),
                     ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -182,6 +211,9 @@ class _CreateUser extends State<CreateUser> {
                       if (value == null || value.isEmpty) {
                         return a_password_m;
                       }
+                      if (value.length < 8) {
+                        return 'Password must be at least 8 characters long'; // رسالة خطأ إذا كانت كلمة المرور أقل من 8 أحرف
+                      }
                       return null;
                     },
                   ),
@@ -205,8 +237,8 @@ class _CreateUser extends State<CreateUser> {
                     ),
                     keyboardType: TextInputType.phone,
                     inputFormatters: [
-                      LengthLimitingTextInputFormatter(9), // 9 خانات فقط بعد +963
-                      FilteringTextInputFormatter.deny(RegExp(r'[a-zA-Z]')), // يمنع الحروف
+                      LengthLimitingTextInputFormatter(9),
+                      FilteringTextInputFormatter.deny(RegExp(r'[a-zA-Z]')),
                     ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -215,29 +247,10 @@ class _CreateUser extends State<CreateUser> {
                       return null;
                     },
                   ),
-
-                  SizedBox(height: 16),
-                  TextFormField(
-                    controller: _planController,
-                    decoration: InputDecoration(
-                      labelText: a_plan_l,
-                      prefixIcon: Icon(Icons.place),
-                    ),
-                    keyboardType: TextInputType.text,
-                    inputFormatters: [
-                      LengthLimitingTextInputFormatter(25), // تحديد عدد المحارف
-                    ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return a_plan_m;
-                      }
-                      return null;
-                    },
-                  ),
                   SizedBox(height: 16),
 
                   // قسم إضافة البصمة
-                  Card(
+                  /* Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -283,25 +296,45 @@ class _CreateUser extends State<CreateUser> {
                         ],
                       ),
                     ),
-                  ),
+                  ),*/
                   SizedBox(height: 16),
                   ElevatedButton(
-                      style: style_button,
-                      onPressed: () {
+                    style: styleButton(color_main),
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          if (!_isFingerprintAdded) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('الرجاء إضافة البصمة أولاً')),
-                            );
-                            return;
-                          }
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => MainPageUser()),
+                          setState(() => _isLoading = true);
+                          final result = await AuthService.register(
+                            name: '${_firstNameController.text} ${_lastNameController.text}',
+                            email: _emailController.text,
+                            phone: '+963 ${_phoneController.text}',
+                            password: _passWordController.text,
                           );
+
+                          setState(() => _isLoading = false);
+
+                          if (result['status'] == 200) {
+                            final user = User.fromJson(result['user']);
+                            final token = result['access_token'];
+                            // حفظ البيانات والانتقال للصفحة الرئيسية
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => MainPageUser(user: user)),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("تم إنشاء الحساب بنجاح")),
+                            );
+                          } else {
+                            // الرسالة القادمة من السيرفر مباشرة
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(result['message'])),
+                            );
+                          }
                         }
                       },
-                      child: Text(a_login_b)),
+                      child: _isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text(a_login_b),
+                  ),
                 ],
               ),
             ),

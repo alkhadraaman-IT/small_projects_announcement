@@ -6,15 +6,15 @@ import 'package:flutter/material.dart';
 String a_store_name_s='اسم المتجر ';
 String a_store_plane_s='مكان المتجر ';
 String a_store_note_s='لمحة عن المتجر ';
-String a_store_phone_s='رقم جوال المتجر ';
+String a_store_phone_s='جوال المتجر ';
 String a_store_class_s='فئة المتجر ';
 
 //product
 String a_product_name_s='اسم المنتج ';
 String a_product_note_s='لمحة عن المنتج ';
 String a_product_type_s='نوع المنتج ';
-String a_product_monye_s='سعر المنتج ';
-String a_product_stati_s='حالة المنتج ';
+String a_product_monye_s=' سعر المنتج بالدولار';
+String a_product_stati_s=' حالة المنتج: متوفر';
 
 //login
 String a_login_b='تسجيل الدخول ';
@@ -73,7 +73,7 @@ String a_app_note_s ='لمحة عن التطبيق';
 
 //ShowProfileData
 String a_user_data_t =' معلومات الشخصية';
-String a_user_store_t ='متاجر التطبيق';
+String a_user_store_t ='متاجر المستخدم';
 
 
 //CustomDrawer
@@ -99,10 +99,15 @@ String a_show_store_t='المتجر ';
 String a_show_product_t='المنتجات ';
 
 //FirstLaunch
-String a_FirstLaunch_s='''مرحباً بكم في تطبيقنا الجديد الذي يضيء مشاريعكم الصغيرة!
+/*String a_FirstLaunch_s='''مرحباً بكم في تطبيقنا الجديد الذي يضيء مشاريعكم الصغيرة!
  نحن هنا لنساعدكم في الإعلان عن منتجاتكم بفعالية.
   استخدم هذا الفضاء لإبراز أفكارك الجديدة واجعل شعلة مشروعك تتألق!
   انطلق الآن، وأطلق العنان لإبداعك، وضاعف أرباحك!''';
+*/
+String a_FirstLaunch_s='''مرحبًا بك في تطبيق App! 
+منصتك المثالية للإعلان عن مشروعك 
+نوفر لك أدوات ونصائح تسويقية لتعزيز مشروعك بكل سهولة مع واجهة بسيطة وتقنيات حديثة. 
+ انطلق في رحلتك مميزة...''';
 String a_start_b='إبدأ';
 
 //about
@@ -115,10 +120,29 @@ String a_favort_s='المفضلة';
 String a_add_b='إضافة ';
 String a_edit_b='تعديل ';
 
-String app_name='name_app';
+String app_name='Dukkani';
 
 //الصور
-var image_logo_s=Image.asset('assets/images/img_1.jpg',height: 32,width: 32,);
-var image_login=Image.asset('assets/images/img.png');
-var image_logo_b=Image.asset('assets/images/img_2.png',height: 40,);
+var image_logo_s=Image.asset('assets/images/img_5.png',height: 30,width: 30,);
+var image_logo_w=Image.asset('assets/images/img_4.png',height: 60,);
+var image_login=Image.asset('assets/images/img.png',height: 250);
+var image_logo_b=Image.asset('assets/images/img_5.png',height: 160,);
 var image_user=Image.asset('assets/images/img_3.png',height: 60);
+var image_first_launch=Image.asset('assets/images/img_6.png',height: 250);
+var image_restpassword=Image.asset('assets/images/img_7.png',height: 250);
+const String image_user_path = 'assets/images/img_3.png';
+
+
+//قائمو جانبية
+// في ملف variables.dart
+const String a_logout_confirm_title = 'تسجيل الخروج';
+const String a_logout_confirm_message = 'هل تريد تسجيل الخروج؟';
+const String a_final_confirm_title = 'تأكيد نهائي';
+const String a_logout_final_message = 'هل أنت متأكد من أنك تريد تسجيل الخروج؟';
+const String a_exit_app_title = 'خروج من التطبيق';
+const String a_exit_app_message = 'هل تريد الخروج من التطبيق؟';
+const String a_exit_app_final_message = 'هل أنت متأكد من أنك تريد الخروج من التطبيق؟';
+const String a_cancel = 'إلغاء';
+const String a_yes = 'نعم';
+const String a_confirm = 'تأكيد';
+const String a_exit = 'خروج';

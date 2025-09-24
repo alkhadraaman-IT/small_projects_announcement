@@ -2,37 +2,226 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Favorite;
+use App\Models\Product;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     //
-    public function index() {
-    // عرض قائمة
+    public function index($id)
+    {
+        // عرض قائمة المنتجات لمتجر معين
+        $products = Product::where('product_state', true)
+            ->where('store_id', $id)
+            ->get();
+
+        return response()->json($products);
+    }
+
+
+    public function create()
+    {
+        // عرض نموذج إنشاء
+    }
+
+    public function store(Request $request)
+{
+    // التحقق من صحة البيانات
+    $validated = $request->validate([
+        'store_id' => 'required|exists:stores,id',
+        'product_name' => 'required|string|max:255',
+        'type_id' => 'required|exists:types,id',
+        'product_description' => 'required|string',
+        'product_price' => 'required|numeric|min:0',
+        'product_available' => 'sometimes|boolean',
+        'product_state' => 'sometimes|boolean',
+        'product_photo_1' => 'required|image|max:4096',
+        'product_photo_2' => 'nullable|image|max:4096',
+        'product_photo_3' => 'nullable|image|max:4096',
+        'product_photo_4' => 'nullable|image|max:4096',
+    ]);
+
+    // تحميل الصورة الرئيسية
+    $path1 = $request->file('product_photo_1')->store('products', 'public');
+    $url1 = asset('storage/' . $path1);
+
+    // معالجة الصور الإضافية
+    $url2 = null;
+    $url3 = null;
+    $url4 = null;
+
+    if ($request->hasFile('product_photo_2')) {
+        $path2 = $request->file('product_photo_2')->store('products', 'public');
+        $url2 = asset('storage/' . $path2);
+    }
+    
+    if ($request->hasFile('product_photo_3')) {
+        $path3 = $request->file('product_photo_3')->store('products', 'public');
+        $url3 = asset('storage/' . $path3);
+    }
+    
+    if ($request->hasFile('product_photo_4')) {
+        $path4 = $request->file('product_photo_4')->store('products', 'public');
+        $url4 = asset('storage/' . $path4);
+    }
+
+  // تحقق من عدم وجود منتج بنفس الاسم داخل نفس المتجر وحالته 1
+$exists = Product::where('product_name', $validated['product_name'])
+    ->where('store_id', $validated['store_id'])
+    ->where('product_state', true) // فقط المنتجات الفعالة
+    ->first();
+
+if ($exists) {
+    return response()->json(['message' => 'هذا الاسم موجود مسبقاً'], 403);
 }
 
-public function create() {
-    // عرض نموذج إنشاء
+
+    try {
+        // إنشاء المنتج
+        $product = Product::create([
+            'store_id' => $validated['store_id'],
+            'product_name' => $validated['product_name'],
+            'type_id' => $validated['type_id'],
+            'product_description' => $validated['product_description'],
+            'product_price' => $validated['product_price'],
+            'product_available' => $validated['product_available'] ?? true,
+            'product_state' => $validated['product_state'] ?? true,
+            'product_photo_1' => $url1, // استخدام المسار بدلاً من الملف
+            'product_photo_2' => $url2,
+            'product_photo_3' => $url3,
+            'product_photo_4' => $url4,
+        ]);
+
+        return response()->json([
+            'message' => 'تم إضافة المنتج بنجاح',
+            'product' => $product
+        ], 201);
+
+    } catch (\Exception $e) {
+    \Log::error('Product creation error: ' . $e->getMessage());
+    \Log::error('File: ' . $e->getFile());
+    \Log::error('Line: ' . $e->getLine());
+    
+    return response()->json([
+        'message' => 'فشل في إضافة المنتج',
+        'error' => $e->getMessage(),
+        'trace' => $e->getTraceAsString() // فقط في وضع التطوير
+    ], 500);
+}
 }
 
-public function store(Request $request) {
-    // تخزين بيانات جديدة
+    public function show($id)
+    {
+        // عرض بيانات محددة
+        $product = Product::find($id);
+
+        if (!$product) {
+            return response()->json(['message' => 'المنتج غير موجود'], 404);
+        }
+
+        return response()->json($product);
+    }
+
+    public function edit($id)
+    {
+        // عرض نموذج تعديل
+    }
+
+    public function update(Request $request, $id)
+{
+    $product = Product::find($id);
+
+    if (!$product) {
+        return response()->json(['message' => 'المنتج غير موجود'], 404);
+    }
+
+    // التحقق من صحة البيانات
+    $validated = $request->validate([
+        'product_name' => 'sometimes|string|max:255',
+        'type_id' => 'sometimes|exists:types,id',
+        'product_description' => 'sometimes|string',
+        'product_price' => 'sometimes|numeric|min:0',
+        'product_available' => 'sometimes|boolean',
+        'product_state' => 'sometimes|boolean',
+        'product_photo_1' => 'sometimes|image|max:4096',
+        'product_photo_2' => 'nullable|image|max:4096',
+        'product_photo_3' => 'nullable|image|max:4096',
+        'product_photo_4' => 'nullable|image|max:4096',
+    ]);
+
+    // تحقق من تكرار اسم المنتج داخل نفس المتجر (باستثناء المنتج الحالي)
+    if (isset($validated['product_name'])) {
+    $exists = Product::where('product_name', $validated['product_name'])
+        ->where('store_id', $product->store_id) // نفس المتجر
+        ->where('product_state', true)           // فقط المنتجات الفعالة
+        ->where('id', '!=', $product->id)       // باستثناء نفسه
+        ->first();
+
+    if ($exists) {
+        return response()->json(['message' => 'هذا الاسم موجود مسبقاً في هذا المتجر'], 403);
+    }
 }
 
-public function show($id) {
-    // عرض بيانات محددة
+
+    // تحديث الصور إذا ارفعت صور جديدة
+    for ($i = 1; $i <= 4; $i++) {
+        $field = "product_photo_" . $i;
+        if ($request->hasFile($field)) {
+            $path = $request->file($field)->store('products', 'public');
+            $url = asset('storage/' . $path);
+            $validated[$field] = $url;
+        }
+    }
+
+    // تحديث المنتج
+    try {
+        $product->update($validated);
+        $product->refresh();
+
+        return response()->json([
+            'message' => 'تم تحديث المنتج بنجاح',
+            'product' => $product
+        ], 200);
+
+    } catch (\Exception $e) {
+        \Log::error('Product update error: ' . $e->getMessage());
+        return response()->json([
+            'message' => 'فشل في تحديث المنتج',
+            'error' => $e->getMessage()
+        ], 500);
+    }
 }
 
-public function edit($id) {
-    // عرض نموذج تعديل
-}
+    public function destroy($id)
+    {
+        // حذف بيانات
+        try {
+            $product = Product::findOrFail($id);
 
-public function update(Request $request, $id) {
-    // تحديث بيانات
-}
+            // تأكد أن المنتج ليس معطلاً بالفعل
+            if (!$product->product_state) {
+                return response()->json([
+                    'message' => 'المنتج معطل بالفعل'
+                ], 400);
+            }
 
-public function destroy($id) {
-    // حذف بيانات
-}
+            $product->update(['product_state' => false]);
+
+            return response()->json([
+                'message' => 'تم تعطيل المنتج بنجاح',
+                'product' => $product
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json(['message' => 'المنتج غير موجود'], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'فشل في تعطيل المنتج',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
+    }
 
 }

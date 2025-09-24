@@ -1,10 +1,10 @@
-class favorites {
+class Favorit {
   final int id;
   final int user_id ;
   final int product_id  ;
-  final bool state ;
+  final int state ;
 
-  favorites({
+  Favorit({
     required this.id,
     required this.user_id ,
     required this.product_id  ,
@@ -12,12 +12,23 @@ class favorites {
   });
 
   // Factory method to convert JSON to Product object
-  factory favorites.fromJson(Map<String, dynamic> json) {
-    return favorites(
-      id: json['id'],
-      user_id : json['user_id '],
-      product_id  : json['product_id  '],
-      state : json['state '],
+  factory Favorit.fromJson(Map<String, dynamic> json) {
+    final favData = json['data'] ?? json;
+
+    return Favorit(
+      id: favData['id'] ,
+      user_id: favData['user_id'] ,
+      product_id: favData['product_id'] ,
+      state: favData['state'] ?? 1, // أو 0 حسب المنطق عندك
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': user_id,
+      'product_id': product_id,
+      'state': state,
+    };
   }
 }

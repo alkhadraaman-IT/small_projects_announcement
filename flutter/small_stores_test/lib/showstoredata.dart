@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:small_stores_test/appbar.dart';
 import 'package:small_stores_test/productall.dart';
 import 'drawer.dart';
+import 'models/storemodel.dart';
+import 'models/usermodel.dart';
 import 'product.dart';
 import 'showproductall.dart';
 import 'showstore.dart';
@@ -11,6 +13,11 @@ import 'style.dart';
 import 'appbar.dart';
 
 class ShowStoreData extends StatefulWidget {
+  final StoreModel store;
+  final User user;
+
+  const ShowStoreData({Key? key, required this.store, required this.user}) : super(key: key);
+
   @override
   _ShowStoreData createState() => _ShowStoreData();
 }
@@ -31,7 +38,7 @@ class _ShowStoreData extends State<ShowStoreData> {
             )
                 : null,
 
-            title: Text(app_name,style: style_name_app_o,),
+            title: Text(app_name,style: style_name_app_o(color_main),),
             centerTitle: true,
             actions: [
               Builder(
@@ -50,11 +57,11 @@ class _ShowStoreData extends State<ShowStoreData> {
               ],
             ),
           ),
-          drawer: CustomDrawer(),
+          drawer: CustomDrawer(user: widget.user,),
           body: TabBarView(
             children: [
-              ShowStore(),
-              ShowProductAll(),
+              ShowStore(store_id: widget.store.id),
+              ShowProductAll(store: widget.store,user:  widget.user,page_view: false,),
             ],
           ),
         )

@@ -13,24 +13,38 @@ class _FirstLaunch extends State<FirstLaunch> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
+        backgroundColor: Colors.white,
+        /*appBar: AppBar(
           title: Text(app_name,style: style_name_app_o,),
           centerTitle: true,
-        ),
+        ),*/
         body: SingleChildScrollView(
             child: Center(
                 child: Padding(
                     padding: const EdgeInsets.all(24.0),
+
                     child: Column(
                         children: [
-                          image_login,
+                          SizedBox(height: 32,),
+                          image_first_launch,
+                          SizedBox(height: 16,),
+                          Text(app_name,style: style_name_app_o(color_main),),
                           SizedBox(height: 16,),
                           Text(a_FirstLaunch_s,style: style_text_normal,),
                           SizedBox(height: 16,),
-                          ElevatedButton(onPressed:(){ Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => Login()),
-                          );},style: style_button, child: Text(a_start_b))
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width / 3,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => Login()),
+                                );
+                              },
+                              style: styleButton(color_main),
+                              child: Text(a_start_b),
+                            ),
+                          )
                         ]
                     )
                 )

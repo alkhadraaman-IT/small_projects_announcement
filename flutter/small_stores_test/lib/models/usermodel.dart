@@ -1,35 +1,58 @@
-class user {
+import '../variables.dart';
+
+class User {
   final int id;
   final String name ;
-  final int phone   ;
+  final String phone   ;
   final String email  ;
   final String password ;
-  final String profile_photo ;
-  final bool type ;
-  final bool state ;
+  final String? profile_photo ;
+  final int type ;
+  final int status ;
 
-  user({
+  User({
     required this.id,
     required this.name ,
     required this.phone   ,
     required this.email   ,
     required this.password  ,
-    required this.profile_photo  ,
+    this.profile_photo  ,
     required this.type  ,
-    required this.state ,
+    required this.status ,
   });
 
   // Factory method to convert JSON to Product object
-  factory user.fromJson(Map<String, dynamic> json) {
-    return user(
-      id: json['id'],
-      name : json['name '],
-      phone   : json['phone'],
-      email  : json['email  '],
-      password : json['password '],
-      profile_photo : json['profile_photo '],
-      type : json['type '],
-      state : json['state '],
+  factory User.fromJson(Map<String, dynamic> json) {
+    final userData = json.containsKey('user') ? json['user'] : json;
+    // ناخد مفتاح user
+    return User(
+      id: userData['id'],
+      name: userData['name'],
+      phone: userData['phone'].toString(),
+      email: userData['email'],
+      password: '', // لأن السيرفر لا يرجع كلمة المرور
+      profile_photo: userData['profile_photo']?.toString() ?? image_user_path,
+      type: userData['type'] is int ? userData['type'] : int.tryParse(userData['type'].toString()) ?? 1,
+      status: userData['status'] is int ? userData['status'] : int.tryParse(userData['status'].toString()) ?? 1,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    final data = {
+      'id': id,
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'profile_photo': profile_photo,
+      'type': type,
+      'status': status,
+    };
+
+    if (password != null && password!.trim().isNotEmpty) {
+      data['password'] = password;
+    }
+
+    return data;
+  }
+
 }

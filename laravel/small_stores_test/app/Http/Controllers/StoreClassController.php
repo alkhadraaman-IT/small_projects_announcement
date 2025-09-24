@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\StoreClass;
 use Illuminate\Http\Request;
 
 class StoreClassController extends Controller
@@ -23,6 +24,14 @@ public function store(Request $request) {
 
 public function show($id) {
     // عرض بيانات محددة
+    $class = StoreClass::find($id);
+        
+        if (!$class) {
+            return response()->json(['message' => 'الصنف غير موجود'], 404);
+        }
+
+        return response()->json($class);
+   
 }
 
 public function edit($id) {

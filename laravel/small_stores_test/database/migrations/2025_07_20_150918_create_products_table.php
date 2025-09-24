@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('product_name');
             $table->foreignId('type_id')->constrained('types');
             $table->string('product_description');
-            $table->integer('product_price');
+            $table->decimal('product_price', 10, 2);
             $table->boolean('product_available')->default(true); 
             $table->boolean('product_state')->default(true); 
             $table->string('product_photo_1');
