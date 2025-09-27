@@ -130,7 +130,7 @@ class _EditProduct extends State<EditProduct> {
                   labelText: a_product_name_s,
                   prefixIcon: Icon(Icons.sell),
                 ),
-                validator: (value) => value == null || value.isEmpty ? a_first_name_m : null,
+                validator: (value) => value == null || value.isEmpty ? "يرجى ادخال اسم المنتج" : null,
               ),
               SizedBox(height: 16),
               DropdownButtonFormField<ProductType>(
@@ -165,7 +165,7 @@ class _EditProduct extends State<EditProduct> {
                   labelText: a_product_note_s,
                   prefixIcon: Icon(Icons.sticky_note_2_rounded),
                 ),
-                validator: (value) => value == null || value.isEmpty ? a_email_m : null,
+                validator: (value) => value == null || value.isEmpty ? "يرجى ادخال لمحة عن المنتج" : null,
               ),
               SizedBox(height: 16),
               TextFormField(
@@ -181,7 +181,7 @@ class _EditProduct extends State<EditProduct> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return a_phone_m;
+                    return "برجى ادخال سعر المنتج";
                   }
                   return null;
                 },
@@ -220,7 +220,7 @@ class _EditProduct extends State<EditProduct> {
                       keyboardType: TextInputType.name,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return a_store_logo_m;
+                          return "يرجى ادخال صورة المنتج";
                         }
                         return null;
                       },

@@ -148,13 +148,13 @@ class _AddAnnouncement extends State<AddAnnouncement> {
                       prefixIcon: Icon(Icons.sticky_note_2_rounded),
                     ),
                     keyboardType: TextInputType.name,
-                    maxLength: 100,
+                    maxLength: 60,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return a_store_name_m;
+                        return "رجاء ادخال نص الإعلان";
                       }
-                      if (value.length > 100) {
-                        return 'لا يجوز أن يكون الإعلان أكثر من 100 محرف';
+                      if (value.length > 60) {
+                        return 'لا يجوز أن يكون الإعلان أكثر من 60 محرف';
                       }
                       return null;
                     },
@@ -172,7 +172,7 @@ class _AddAnnouncement extends State<AddAnnouncement> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return a_store_logo_m;
+                              return "رجاء اخال صورة الإعلان";
                             }
                             return null;
                           },
@@ -191,7 +191,7 @@ class _AddAnnouncement extends State<AddAnnouncement> {
                     Image.memory(
                       _webImage!,
                       height: 100,
-                      width: 100,
+                      width: 200,
                       fit: BoxFit.cover,
                     ),
                   ] else if (_selectedImage != null) ...[
@@ -199,7 +199,7 @@ class _AddAnnouncement extends State<AddAnnouncement> {
                     Image.file(
                       _selectedImage!,
                       height: 100,
-                      width: 100,
+                      width: 200,
                       fit: BoxFit.cover,
                     ),
                   ],

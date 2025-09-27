@@ -119,7 +119,7 @@ class _AddProduct extends State<AddProduct> {
                     ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return a_first_name_m;
+                        return "يرجى ادخال اسم المنتج";
                       }
                       return null;
                     },
@@ -160,7 +160,7 @@ class _AddProduct extends State<AddProduct> {
                     maxLength: 255,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return a_email_m;
+                        return "يرجى ادخال لمحة عن المنتج";
                       }
                       return null;
                     },
@@ -179,7 +179,7 @@ class _AddProduct extends State<AddProduct> {
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return a_phone_m;
+                        return "يرجى ادخال سعر المنتج";
                       }
                       return null;
                     },
@@ -217,7 +217,7 @@ class _AddProduct extends State<AddProduct> {
                           keyboardType: TextInputType.name,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return a_store_logo_m;
+                              return "يرجى ادخال صورة المنتج";
                             }
                             return null;
                           },

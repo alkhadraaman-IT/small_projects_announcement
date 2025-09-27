@@ -122,7 +122,7 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                   crossAxisCount: crossAxisCount,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 2.5,
+                  childAspectRatio: 2.8,
                 ),
                 itemCount: _filteredAnnouncements.length,
                 itemBuilder: (context, index) {

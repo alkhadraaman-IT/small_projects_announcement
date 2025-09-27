@@ -9,7 +9,6 @@ import 'editannouncement.dart';
 import 'models/announcementmodel.dart';
 import 'models/storemodel.dart';
 import 'models/usermodel.dart';
-import 'showstoredata.dart';
 import 'style.dart';
 
 class MyAnnouncement extends StatefulWidget {
@@ -18,19 +17,21 @@ class MyAnnouncement extends StatefulWidget {
   const MyAnnouncement({Key? key, required this.user}) : super(key: key);
 
   @override
-  _MyAnnouncement createState() => _MyAnnouncement();
+  _MyAnnouncementState createState() => _MyAnnouncementState();
 }
 
-class _MyAnnouncement extends State<MyAnnouncement> {
-  final _formKey = GlobalKey<FormState>();
+class _MyAnnouncementState extends State<MyAnnouncement> {
   List<Announcement> _announcements = [];
+  List<Announcement> _filteredAnnouncements = [];
   Map<int, StoreModel> _storesCache = {};
   bool _isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _fetchAnnouncements();
+    _searchController.addListener(_applySearch);
   }
 
   Future<void> _fetchAnnouncements() async {
@@ -48,6 +49,7 @@ class _MyAnnouncement extends State<MyAnnouncement> {
 
       setState(() {
         _announcements = fetched.reversed.toList();
+        _filteredAnnouncements = List.from(_announcements);
         _isLoading = false;
       });
     } catch (e) {
@@ -58,12 +60,25 @@ class _MyAnnouncement extends State<MyAnnouncement> {
     }
   }
 
+  void _applySearch() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredAnnouncements = _announcements.where((ann) {
+        final store = _storesCache[ann.store_id];
+        final storeName = store?.store_name.toLowerCase() ?? '';
+        final description = ann.announcement_description.toLowerCase();
+        return storeName.contains(query) || description.contains(query);
+      }).toList();
+    });
+  }
+
   Future<void> _deleteAnnouncement(int index, int id) async {
     try {
       final api = AnnouncementApi(apiService: ApiService(client: http.Client()));
       await api.deleteAnnouncement(id);
       setState(() {
         _announcements.removeAt(index);
+        _filteredAnnouncements = List.from(_announcements);
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('تم حذف الإعلان بنجاح')),
@@ -100,7 +115,6 @@ class _MyAnnouncement extends State<MyAnnouncement> {
     }
   }
 
-
   void _showOptionsDialog(Announcement item, int index) {
     showDialog(
       context: context,
@@ -133,167 +147,180 @@ class _MyAnnouncement extends State<MyAnnouncement> {
 
   @override
   Widget build(BuildContext context) {
-    // تحديد عدد الأعمدة بناءً على عرض الشاشة
     final screenWidth = MediaQuery.of(context).size.width;
     final crossAxisCount = screenWidth > 1200 ? 2 : 1;
 
     return Scaffold(
-        body: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'إعلاناتي',
-                    style: style_text_titel,
-                    textAlign: TextAlign.right,
-                  ),
-                  SizedBox(height: 16),
-                  Expanded(
-                      child: _isLoading
-                          ? Center(child: CircularProgressIndicator())
-                          : _announcements.isEmpty
-                          ? Center(child: Text('لا توجد إعلانات حالياً'))
-                          : GridView.builder(
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                            childAspectRatio: 2.5, // النسبة التي تريدها
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextFormField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'ابحث عن إعلان أو متجر',
+                suffixIcon: Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(32)),
+                  borderSide: BorderSide(color: Colors.grey, width: 2),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'إعلاناتي',
+              style: style_text_titel,
+              textAlign: TextAlign.right,
+            ),
+            SizedBox(height: 16),
+            Expanded(
+              child: _isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : _filteredAnnouncements.isEmpty
+                  ? Center(child: Text('لا توجد إعلانات حالياً'))
+                  : GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 2.8,
+                ),
+                itemCount: _filteredAnnouncements.length,
+                itemBuilder: (context, index) {
+                  final item = _filteredAnnouncements[index];
+                  final store = _storesCache[item.store_id];
+
+                  // إصلاح رابط صورة الإعلان
+                  String fixedImageUrl = item.announcement_photo;
+                  if (fixedImageUrl.contains('http://127.0.0.1:8000/storage/http://127.0.0.1:8000/storage/')) {
+                    fixedImageUrl = fixedImageUrl.replaceAll(
+                        'http://127.0.0.1:8000/storage/http://127.0.0.1:8000/storage/',
+                        ApiService.baseUrlImg);
+                  } else if (fixedImageUrl.contains('http://127.0.0.1:8000/storage/')) {
+                    fixedImageUrl = fixedImageUrl.replaceFirst(
+                        'http://127.0.0.1:8000/storage/',
+                        ApiService.baseUrlImg);
+                  }
+
+                  // صورة المتجر
+                  ImageProvider storeImage;
+                  if (store != null && store.store_photo.isNotEmpty) {
+                    storeImage = NetworkImage(
+                      store.store_photo.replaceFirst(
+                          'http://127.0.0.1:8000/storage/',
+                          ApiService.baseUrlImg),
+                    );
+                  } else {
+                    storeImage = AssetImage('assets/images/logo.png');
+                  }
+
+                  return GestureDetector(
+                    onTap: () => _showOptionsDialog(item, index),
+                    child: Card(
+                      margin: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: NetworkImage(fixedImageUrl),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
-                          itemCount: _announcements.length,
-                          itemBuilder: (context, index) {
-                            final item = _announcements[index];
-                            final store = _storesCache[item.store_id];
-
-                            // إصلاح رابط الصورة إذا كان يحتوي تكرار
-                            String fixedImageUrl = item.announcement_photo;
-                            if (fixedImageUrl.contains('http://127.0.0.1:8000/storage/http://127.0.0.1:8000/storage/')) {
-                              fixedImageUrl = fixedImageUrl.replaceAll(
-                                'http://127.0.0.1:8000/storage/http://127.0.0.1:8000/storage/',
-                                ApiService.baseUrlImg,
-                              );
-                            }
-
-                            print('صورة الإعلان بعد التصحيح: $fixedImageUrl');
-
-                            return GestureDetector(
-                              onTap: () => _showOptionsDialog(item, index),
-                              child: Card(
-                                margin: EdgeInsets.zero,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Container(
+                              height: 150,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withOpacity(0.9),
+                                  ],
                                 ),
-                                clipBehavior: Clip.antiAlias,
-                                child: Stack(
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 12,
+                            left: 12,
+                            right: 12,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
                                   children: [
-                                    // صورة الإعلان
-                                    Container(
-                                      height: double.infinity,
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        image: DecorationImage(
-                                          image: NetworkImage(fixedImageUrl),
-                                          fit: BoxFit.cover,
-                                        ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        if (store != null) {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => ShowMyStoreData(
+                                                  store: store,
+                                                  user: widget.user),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      child: CircleAvatar(
+                                        backgroundImage: storeImage,
+                                        radius: 16,
                                       ),
                                     ),
-
-                                    // التدرج في الجزء السفلي فقط
-                                    Align(
-                                      alignment: Alignment.bottomCenter,
-                                      child: Container(
-                                        height: 150,
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              Colors.transparent,
-                                              Colors.black.withOpacity(0.9),
-                                            ],
-                                          ),
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        store?.store_name ?? 'متجر ${item.store_id}',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                      ),
-                                    ),
-
-                                    // المحتوى في الجزء السفلي
-                                    Positioned(
-                                      bottom: 12,
-                                      right: 12,
-                                      left: 12,
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Directionality(
-                                            textDirection: TextDirection.rtl,
-                                            child: Row(
-                                              children: [
-                                                GestureDetector(
-                                                  onTap: () {
-                                                    final clickedStore = store;
-                                                    if (clickedStore != null) {
-                                                      Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                          builder: (_) => ShowMyStoreData(
-                                                            store: clickedStore,
-                                                            user: widget.user,
-                                                          ),
-                                                        ),
-                                                      );
-                                                    }
-                                                  },
-                                                  child: CircleAvatar(
-                                                    backgroundImage: store != null && store.store_photo.isNotEmpty
-                                                        ? NetworkImage(store.store_photo)
-                                                        : AssetImage('assets/images/logo.png') as ImageProvider,
-                                                    radius: 16,
-                                                  ),
-                                                ),
-                                                SizedBox(width: 8),
-                                                Text(
-                                                  store?.store_name ?? 'متجر ${item.store_id}',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          SizedBox(height: 8),
-                                          Text(
-                                            item.announcement_description,
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 14,
-                                            ),
-                                            textAlign: TextAlign.right,
-                                          ),
-                                          SizedBox(height: 4),
-                                          Text(
-                                            item.announcement_date,
-                                            style: TextStyle(
-                                              color: Colors.white70,
-                                              fontSize: 12,
-                                            ),
-                                            textAlign: TextAlign.right,
-                                          ),
-                                        ],
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            );
-                          }
-                      )
-                  )
-                ]
-            )
-        )
+                                SizedBox(height: 8),
+                                Text(
+                                  item.announcement_description,
+                                  style: TextStyle(color: Colors.white, fontSize: 14),
+                                  textAlign: TextAlign.right,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  item.announcement_date,
+                                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                                  textAlign: TextAlign.right,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

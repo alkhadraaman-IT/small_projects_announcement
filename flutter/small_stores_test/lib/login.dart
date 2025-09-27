@@ -36,41 +36,6 @@ class _Login extends State<Login> {
     super.dispose();
   }
 
-  void _fillDefaultCredentials() {
-    _emailController.text = "user1@test.com";
-    _passWordController.text = "123";
-  }
-
-  Future<void> _authenticate() async {
-    try {
-      bool canCheck = await _localAuth.canCheckBiometrics;
-      if (!canCheck) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('البصمة غير مدعومة على هذا الجهاز')),
-        );
-        return;
-      }
-
-      bool authenticated = await _localAuth.authenticate(
-        localizedReason: 'سجّل الدخول باستخدام البصمة',
-        options: const AuthenticationOptions(biometricOnly: true),
-      );
-
-      if (authenticated) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تم المصادقة بنجاح! ')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('فشلت المصادقة ')),
-        );
-      }
-    } catch (e) {
-      print('Error: $e');
-    }
-  }
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,12 +53,6 @@ class _Login extends State<Login> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  /*Image.network(
-                    'http://localhost:8000/storage/stores/LP79VPntVUmi79zonIQSKlFYIcSdaSxDYgxpHxl1.jpg',
-                    width: 200,
-                    height: 200,
-                    fit: BoxFit.cover,
-                  ),*/
                   image_login,
                   SizedBox(height: 8),
                   Text(a_login_b, style: style_text_titel),
@@ -145,16 +104,8 @@ class _Login extends State<Login> {
                       Expanded(child: Text(a_reset_password_l)),
                     ],
                   ),
-                  // Directionality(
-                  // textDirection: TextDirection.rtl,
-                  //child:
                   Column(
-                    //  mainAxisAlignment: MainAxisAlignment.end, // ← مهم جداً: توجيه المحتوى إلى اليمين
                     children: [
-                      /*TextButton(
-                        onPressed: _authenticate,
-                        child: Text(a_reset_password_b, style: style_text_button_normal, textDirection: TextDirection.rtl,textAlign: TextAlign.right,),
-                      ),*/
                       TextButton(
                         onPressed: () {
                           Navigator.push(
@@ -231,8 +182,20 @@ class _Login extends State<Login> {
                             );
                           }
                         } catch (e) {
+                          String errorMessage = 'فشل تسجيل الدخول';
+
+                          if (e.toString().contains('البريد الإلكتروني غير مسجل')) {
+                            errorMessage = 'البريد الإلكتروني غير مسجل في النظام';
+                          } else if (e.toString().contains('الحساب محظور')) {
+                            errorMessage = 'الحساب محظور. يرجى التواصل مع الدعم';
+                          } else if (e.toString().contains('غير صحيحة')) {
+                            errorMessage = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+                          } else {
+                            errorMessage = 'حدث خطأ غير متوقع: $e';
+                          }
+
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('فشل تسجيل الدخول: $e')),
+                            SnackBar(content: Text(errorMessage)),
                           );
                         } finally {
                           setState(() {
@@ -257,11 +220,6 @@ class _Login extends State<Login> {
                         ),
                       ),
                     ),
-                  ),
-                  // أضف هذا الزر في واجهة المستخدم بعد حقول الإدخال
-                  TextButton(
-                    onPressed: _fillDefaultCredentials,
-                    child: Text("استخدام بيانات تجريبية", style: style_text_button_normal(color_main)),
                   ),
                   SizedBox(height: 16),
                   Column(

@@ -98,9 +98,13 @@ class _EditAnnouncement extends State<EditAnnouncement> {
                       prefixIcon: Icon(Icons.sticky_note_2_rounded),
                     ),
                     keyboardType: TextInputType.name,
+                    maxLength: 60,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return a_store_name_m;
+                        return "رجاء ادخال نص الإعلان";
+                      }
+                      if (value.length > 60) {
+                        return 'لا يجوز أن يكون الإعلان أكثر من 60 محرف';
                       }
                       return null;
                     },
@@ -119,7 +123,7 @@ class _EditAnnouncement extends State<EditAnnouncement> {
                           keyboardType: TextInputType.name,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return a_store_logo_m;
+                              return "رجاء ادخال صورة الإعلان";
                             }
                             return null;
                           },

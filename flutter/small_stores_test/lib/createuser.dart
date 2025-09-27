@@ -212,7 +212,7 @@ class _CreateUser extends State<CreateUser> {
                         return a_password_m;
                       }
                       if (value.length < 8) {
-                        return 'Password must be at least 8 characters long'; // رسالة خطأ إذا كانت كلمة المرور أقل من 8 أحرف
+                        return 'يجب ان تكون كلمة المرور اطول من 8 محارف'; // رسالة خطأ إذا كانت كلمة المرور أقل من 8 أحرف
                       }
                       return null;
                     },

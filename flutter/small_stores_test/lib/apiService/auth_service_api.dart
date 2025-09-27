@@ -20,7 +20,16 @@ class AuthService {
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
-    } else {
+    }else if (response.statusCode == 401) {
+      // خطأ في المصادقة (بريد أو كلمة سر خاطئة)
+      throw Exception('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+    } else if (response.statusCode == 403) {
+      // حساب محظور
+      throw Exception('الحساب محظور. يرجى التواصل مع الدعم');
+    } else if (response.statusCode == 404) {
+      // البريد غير موجود
+      throw Exception('البريد الإلكتروني غير مسجل');
+    }    else {
       throw Exception('Failed to login');
     }
   }

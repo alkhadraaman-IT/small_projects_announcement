@@ -13,7 +13,7 @@ class ForgotPasswordPage extends StatefulWidget {
 }
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
-  final TextEditingController _emailController = TextEditingController(text: "amanalkh727@gmail.com");
+  final TextEditingController _emailController = TextEditingController();
 
 
   final _formKey = GlobalKey<FormState>();

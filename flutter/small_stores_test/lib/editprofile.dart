@@ -112,7 +112,7 @@ class _EditProfile extends State<EditProfile> {
                           keyboardType: TextInputType.name,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return a_first_name_m;
+                              return "يرجى ادخال اسمك الكامل";
                             }
                             return null;
                           },
