@@ -11,35 +11,33 @@ import 'drawer.dart';
 import 'models/usermodel.dart';
 import 'profile.dart';
 
-class MainPageUser extends StatefulWidget {
+class MainPageUserView extends StatefulWidget {
   final User user;
 
-  const MainPageUser({Key? key,required this.user}) : super(key: key);
+  const MainPageUserView({Key? key,required this.user}) : super(key: key);
 
   @override
-  _MainPageUser createState() => _MainPageUser();
+  _MainPageUserView createState() => _MainPageUserView();
 }
 
-class _MainPageUser extends State<MainPageUser> {
+class _MainPageUserView extends State<MainPageUserView> {
   int _selectedIndex = 1; // الفهرس الافتراضي للصفحة
 
   final navigationKey = GlobalKey<CurvedNavigationBarState>();
 
   // قائمة الرموز في شريط التنقل السفلي
   final items = <Widget>[
-    Icon(Icons.storefront_rounded, size: 30,color: Colors.white),
     Icon(Icons.home, size: 30,color: Colors.white,),
     Icon(Icons.campaign, size: 30,color: Colors.white),
   ];
 
-    @override
+  @override
   Widget build(BuildContext context) {
-      final List<Widget> pages = [
-        AnnouncementData(user: widget.user),
-        Home(user: widget.user),
-        AnnouncementScreen(user: widget.user),
-      ];
-      return Scaffold(
+    final List<Widget> pages = [
+      Home(user: widget.user),
+      AnnouncementScreen(user: widget.user),
+    ];
+    return Scaffold(
       appBar: AppBar(
         // الشعار في اليسار (leading)
         leading: Padding(

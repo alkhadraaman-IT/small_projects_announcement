@@ -133,6 +133,17 @@ class _ProfileBodyState extends State<ProfileBody> {
   late User _user;
   bool _isLoading = true;
 
+  String _getUserTypeText(int type) {
+    if (type < 1) {
+      return 'أدمن';
+    } else if (type == 1) {
+      return 'صاحب مشروع';
+    } else if (type == 2) {
+      return 'زائر';
+    } else {
+      return 'غير معروف';
+    }
+  }
 
   @override
   void initState() {
@@ -202,7 +213,8 @@ class _ProfileBodyState extends State<ProfileBody> {
           Text('البريد: ${_user.email}', style: style_text_normal, textAlign: TextAlign.right),
           SizedBox(height: 16),
           Text('الهاتف: ${_user.phone}', style: style_text_normal, textAlign: TextAlign.right),
-          SizedBox(height: 32),
+          SizedBox(height: 16),
+          Text('نوع الحساب: ${_getUserTypeText(_user.type)}', style: style_text_normal, textAlign: TextAlign.right,),
 
           // هنا نضيف اختيار اللون
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:small_stores_test/announcement.dart';
+import 'package:small_stores_test/mystore.dart';
 import 'package:small_stores_test/style.dart';
 
 import 'drawer.dart';
@@ -43,7 +44,7 @@ class _AnnouncementData extends State<AnnouncementData> with SingleTickerProvide
             child: TabBar(
               controller: _tabController,
               tabs: [
-                Tab(text: 'كل الإعلانات'),
+                Tab(text: 'متاجري'),
                 Tab(text: 'إعلاناتي'),
               ],
              /* indicator: tabBarTheme.indicator,
@@ -57,7 +58,7 @@ class _AnnouncementData extends State<AnnouncementData> with SingleTickerProvide
             child: TabBarView(
               controller: _tabController,
               children: [
-                AnnouncementScreen(user: widget.user),
+                MyStore(user: widget.user),
                 MyAnnouncement(user: widget.user),
               ],
             ),

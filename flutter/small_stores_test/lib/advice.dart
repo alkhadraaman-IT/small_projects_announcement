@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:small_stores_test/models/usermodel.dart';
 import 'package:small_stores_test/style.dart';
+import 'package:small_stores_test/variables.dart';
 import 'dart:math';
 
 import 'appbar.dart';
@@ -68,47 +69,67 @@ class _Advice extends State<Advice> {
 
   @override
   Widget build(BuildContext context) {
+    // أبعاد الشاشة
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      //backgroundColor: Colors.grey, // 👉 لون الخلفية كامل الشاشة
       appBar: CustomAppBar(),
       drawer: CustomDrawer(user: widget.user),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-                Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // النص الرئيسي (النصيحة)
-                      Text(
-                        currentTip["text"] ?? "",
-                        style: style_text_big_2(color_main),
-                        textAlign: TextAlign.right, // مهم جداً للعربي
-                        textDirection: TextDirection.rtl, // لضبط اتجاه النص
-                      ),
-                      if (currentTip["author"]?.isNotEmpty ?? false)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 12),
-                          child: Text(
-                            "- ${currentTip["author"]}",
-                            style: TextStyle(
-                              fontSize: 20,
-                              //fontStyle: FontFamily.italic,
-                              color:color_main,
-                             // textDirection: TextDirection.rtl,
-                            ),
+          child: Card(
+            shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+              side: BorderSide(      // ✅ إضافة الإطار للكارد
+                color: color_main,  // لون الإطار
+                width: 2,            // سمك الإطار
+              ),
+            ),
+            elevation: 6,
+            color: Colors.white,
+            child: Container(
+              width: screenWidth * 0.85,   // 👉 85% من عرض الشاشة
+              height: screenHeight * 0.5,  // 👉 50% من ارتفاع الشاشة
+              padding: const EdgeInsets.all(24.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    image_logo_b,
+                    const SizedBox(height: 16),
+                    Text(
+                      currentTip["text"] ?? "",
+                      style: style_text_big_2(color_main),
+                      textAlign: TextAlign.center,
+                      textDirection: TextDirection.rtl,
+                    ),
+                    if (currentTip["author"]?.isNotEmpty ?? false)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(
+                          "- ${currentTip["author"]}",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontStyle: FontStyle.italic,
+                            color: color_main,
                           ),
+                          textAlign: TextAlign.center,
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
+              ),
+            ),
+          ),
+        ),
+      ),
 
-              /*ElevatedButton(
+
+  /*ElevatedButton(
                 onPressed: _getRandomTip,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
@@ -124,10 +145,7 @@ class _Advice extends State<Advice> {
                   style: TextStyle(fontSize: 18),
                 ),
               ),*/
-            ],
-          ),
-        ),
-      ),
+
     );
   }
 }

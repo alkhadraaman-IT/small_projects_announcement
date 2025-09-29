@@ -89,7 +89,7 @@ class _EditAnnouncement extends State<EditAnnouncement> {
                   children: [
                   image_logo_b,
                   SizedBox(height: 16),
-                  Text(a_AddAnnouncement_s, style: style_text_titel),
+                  Text("تعديل إعلان", style: style_text_titel),
                   SizedBox(height: 16),
                   TextFormField(
                     controller: _announcementNoteController,

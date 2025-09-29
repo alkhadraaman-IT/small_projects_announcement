@@ -278,6 +278,17 @@ class _AddProduct extends State<AddProduct> {
                               product_photo_1: _productImageBytes!,
                             );
 
+                            _productNameController.clear();
+                            _productTypeController.clear();
+                            _productPriceController.clear();
+                            _productStaiteController.clear();
+                            _productNoteController.clear();
+                            _productImageController.clear();
+                            setState(() {
+                              _productImageBytes = null;
+                              _selectedType = null;
+                            });
+
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text("✅ تم إضافة المنتج بنجاح")),
                             );

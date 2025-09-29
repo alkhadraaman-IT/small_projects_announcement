@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:small_stores_test/showmyannouncement.dart';
 import 'package:small_stores_test/style.dart';
 
 import 'drawer.dart';
@@ -22,7 +23,7 @@ class _ShowProfileData extends State<ShowProfileData> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           leading: showBackButton
@@ -49,6 +50,7 @@ class _ShowProfileData extends State<ShowProfileData> {
                 tabs: [
                   Tab(text: a_user_data_t),
                   Tab(text: a_user_store_t),
+                  Tab(text: "إعلانات المستخدم"),
                 ],/*
                 indicator: tabBarTheme.indicator, // مؤشر من الأنماط
                 labelColor: tabBarTheme.labelColor,
@@ -64,6 +66,7 @@ class _ShowProfileData extends State<ShowProfileData> {
           children: [
             ShowProfile(user: widget.user),
             ShowMyStore(user: widget.user),
+            ShowMyAnnouncement(user: widget.user)
           ],
         ),
       ),

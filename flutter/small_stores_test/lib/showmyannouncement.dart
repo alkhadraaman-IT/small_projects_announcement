@@ -1,33 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:small_stores_test/showmystoredata.dart';
+import 'package:small_stores_test/showstoredata.dart';
 import 'package:small_stores_test/variables.dart';
 import 'apiService/api_service.dart';
 import 'apiService/announcement_api.dart';
 import 'apiService/store_api.dart';
+import 'editannouncement.dart';
 import 'models/announcementmodel.dart';
 import 'models/storemodel.dart';
 import 'models/usermodel.dart';
-import 'showstoredata.dart';
 import 'style.dart';
 
-class AnnouncementScreen extends StatefulWidget {
+class ShowMyAnnouncement extends StatefulWidget {
   final User user;
 
-  const AnnouncementScreen({Key? key, required this.user}) : super(key: key);
+  const ShowMyAnnouncement({Key? key, required this.user}) : super(key: key);
 
   @override
-  _AnnouncementScreen createState() => _AnnouncementScreen();
+  _ShowMyAnnouncement createState() => _ShowMyAnnouncement();
 }
 
-class _AnnouncementScreen extends State<AnnouncementScreen> {
+class _ShowMyAnnouncement extends State<ShowMyAnnouncement> {
   List<Announcement> _announcements = [];
+  List<Announcement> _filteredAnnouncements = [];
   Map<int, StoreModel> _storesCache = {};
   bool _isLoading = true;
-
   final TextEditingController _searchController = TextEditingController();
-  List<Announcement> _filteredAnnouncements = [];
-
-  // إضافة متغيرات البحث بالتاريخ
   DateTime? _startDate; // بداية النطاق
   DateTime? _endDate; // نهاية النطاق
 
@@ -35,13 +34,9 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
   void initState() {
     super.initState();
     _fetchAnnouncements();
-
-    _searchController.addListener(() {
-      _applySearch();
-    });
+    _searchController.addListener(_applySearch);
   }
 
-  // دالة تطبيق البحث والنطاق الزمني
   void _applySearch() {
     final query = _searchController.text.toLowerCase();
 
@@ -71,7 +66,6 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
     });
   }
 
-  // دالة مسح الفلترة الزمنية
   void _clearDateFilter() {
     setState(() {
       _startDate = null;
@@ -83,7 +77,7 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
   Future<void> _fetchAnnouncements() async {
     try {
       final api = AnnouncementApi(apiService: ApiService(client: http.Client()));
-      final fetched = await api.getAnnouncements();
+      final fetched = await api.getMyAnnouncements(widget.user.id);
 
       final storeApi = StoreApi(apiService: ApiService(client: http.Client()));
       for (var announcement in fetched) {
@@ -100,15 +94,13 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
       });
     } catch (e) {
       print('خطأ في جلب الإعلانات: $e');
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  // دالة لاختيار نطاق التاريخ
+  // دالة لاختيار نطاق التاريخ مع الرسائل
   Future<void> _pickDateRange() async {
     // أولاً: اختيار تاريخ البداية
     DateTime? start = await showDatePicker(
@@ -159,7 +151,7 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
     // ثانياً: اختيار تاريخ النهاية - نستخدم تاريخ البداية كتاريخ ابتدائي
     DateTime? end = await showDatePicker(
       context: context,
-      initialDate: start, // نستخدم تاريخ البداية بدلاً من _endDate
+      initialDate: start,
       firstDate: start,
       lastDate: DateTime(2100),
       builder: (context, child) {
@@ -238,7 +230,6 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // صف البحث والتقويم
             Row(
               children: [
                 Expanded(
@@ -281,17 +272,16 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
             ),
 
             SizedBox(height: 16),
-
             Text(
-              a_ann_d,
+              'إعلاناتي',
               style: style_text_titel,
               textAlign: TextAlign.right,
             ),
-
-            // عرض النطاق الزمني المحدد
+            SizedBox(height: 16),
+            // عرض النطاق أسفل كلمة إعلاناتي - بالشكل البسيط
             if (_startDate != null && _endDate != null)
               Padding(
-                padding: const EdgeInsets.only(top: 8.0),
+                padding: const EdgeInsets.only(top: 4.0),
                 child: Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -349,14 +339,14 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
               ),
 
             SizedBox(height: 16),
-
             Expanded(
               child: _isLoading
                   ? Center(child: CircularProgressIndicator())
                   : _filteredAnnouncements.isEmpty
                   ? Center(child: Text('لا توجد إعلانات حالياً'))
                   : GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate:
+                SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
@@ -369,45 +359,32 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
 
                   // إصلاح رابط صورة الإعلان
                   String fixedImageUrl = item.announcement_photo;
-                  if (fixedImageUrl.contains('http://127.0.0.1:8000/storage/http://127.0.0.1:8000/storage/')) {
+                  if (fixedImageUrl.contains(
+                      'http://127.0.0.1:8000/storage/http://127.0.0.1:8000/storage/')) {
                     fixedImageUrl = fixedImageUrl.replaceAll(
-                      'http://127.0.0.1:8000/storage/http://127.0.0.1:8000/storage/',
-                      ApiService.baseUrlImg,
-                    );
-                  } else if (fixedImageUrl.contains('http://127.0.0.1:8000/storage/')) {
+                        'http://127.0.0.1:8000/storage/http://127.0.0.1:8000/storage/',
+                        ApiService.baseUrlImg);
+                  } else if (fixedImageUrl.contains(
+                      'http://127.0.0.1:8000/storage/')) {
                     fixedImageUrl = fixedImageUrl.replaceFirst(
-                      'http://127.0.0.1:8000/storage/',
-                      ApiService.baseUrlImg,
-                    );
+                        'http://127.0.0.1:8000/storage/',
+                        ApiService.baseUrlImg);
                   }
 
-                  // إصلاح رابط صورة المتجر
+                  // صورة المتجر
                   ImageProvider storeImage;
                   if (store != null && store.store_photo.isNotEmpty) {
                     storeImage = NetworkImage(
                       store.store_photo.replaceFirst(
-                        'http://127.0.0.1:8000/storage/',
-                        ApiService.baseUrlImg,
-                      ),
+                          'http://127.0.0.1:8000/storage/',
+                          ApiService.baseUrlImg),
                     );
                   } else {
-                    storeImage = AssetImage('assets/images/logo.png');
+                    storeImage =
+                        AssetImage('assets/images/logo.png');
                   }
 
                   return GestureDetector(
-                    onTap: () {
-                      if (store != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ShowStoreData(
-                              store: store,
-                              user: widget.user,
-                            ),
-                          ),
-                        );
-                      }
-                    },
                     child: Card(
                       margin: EdgeInsets.zero,
                       shape: RoundedRectangleBorder(
@@ -416,6 +393,7 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                       clipBehavior: Clip.antiAlias,
                       child: Stack(
                         children: [
+                          // صورة الإعلان
                           Container(
                             width: double.infinity,
                             height: double.infinity,
@@ -426,6 +404,8 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                               ),
                             ),
                           ),
+
+                          // تدرج أسفل الإعلان
                           Align(
                             alignment: Alignment.bottomCenter,
                             child: Container(
@@ -442,12 +422,15 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                               ),
                             ),
                           ),
+
+                          // معلومات أسفل الإعلان
                           Positioned(
                             bottom: 12,
                             left: 12,
                             right: 12,
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   children: [
@@ -465,15 +448,19 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                                           );
                                         }
                                       },
-                                      child: CircleAvatar(
-                                        backgroundImage: storeImage,
-                                        radius: 16,
+                                      child: Tooltip(
+                                        message: 'عرض المتجر',
+                                        child: CircleAvatar(
+                                          backgroundImage: storeImage,
+                                          radius: 16,
+                                        ),
                                       ),
                                     ),
                                     SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        store?.store_name ?? 'متجر ${item.store_id}',
+                                        store?.store_name ??
+                                            'متجر ${item.store_id}',
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 16,
@@ -487,7 +474,9 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                                 SizedBox(height: 8),
                                 Text(
                                   item.announcement_description,
-                                  style: TextStyle(color: Colors.white, fontSize: 14),
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14),
                                   textAlign: TextAlign.right,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
@@ -495,7 +484,9 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                                 SizedBox(height: 4),
                                 Text(
                                   item.announcement_date,
-                                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                                  style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12),
                                   textAlign: TextAlign.right,
                                 ),
                               ],

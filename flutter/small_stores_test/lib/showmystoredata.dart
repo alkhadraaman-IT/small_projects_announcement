@@ -3,8 +3,10 @@ import 'package:small_stores_test/appbar.dart';
 import 'package:small_stores_test/models/storemodel.dart';
 import 'package:small_stores_test/mystore.dart';
 import 'package:small_stores_test/productall.dart';
+import 'package:small_stores_test/showmyannouncement.dart';
 import 'drawer.dart';
 import 'models/usermodel.dart';
+import 'myannouncement.dart';
 import 'product.dart';
 import 'showproductall.dart';
 import 'showprofile.dart';
@@ -58,6 +60,7 @@ class _ShowMyStoreData extends State<ShowMyStoreData> {
             tabs: [
               Tab(text: a_show_store_t),
               Tab(text: a_show_product_t),
+              //Tab(text: "اعلاناتي"),
             ],
           ),
         ),
@@ -68,11 +71,13 @@ class _ShowMyStoreData extends State<ShowMyStoreData> {
             // الواجهات الافتراضية عندما يكون useDefaultView = true
             Store(store_id: widget.store.id,user: widget.user),
             ProductAll(store: widget.store,user: widget.user),
+            //MyAnnouncement(user: widget.user)
           ]
               : [
             // الواجهات البديلة عندما يكون useDefaultView = false
             ShowStore(store_id: widget.store.id),
             ShowProductAll(store: widget.store,user:widget.user,page_view: false,),
+            //ShowMyAnnouncement(user: widget.user)
           ],
         ),
       ),

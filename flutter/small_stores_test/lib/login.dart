@@ -7,6 +7,7 @@ import 'package:small_stores_test/createuser.dart';
 import 'package:small_stores_test/forgotpassword.dart';
 import 'package:small_stores_test/mainpageadmin.dart';
 import 'package:small_stores_test/mainpageuser.dart';
+import 'package:small_stores_test/mainpageuserview.dart';
 import 'package:small_stores_test/models/usermodel.dart';
 import 'package:small_stores_test/style.dart';
 import 'package:small_stores_test/variables.dart';
@@ -170,6 +171,11 @@ class _Login extends State<Login> {
                                 context,
                                 MaterialPageRoute(builder: (context) => MainPageAdmin(user: user)),
                               );
+                            }else if (user.type == 2) {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => MainPageUserView(user: user)),
+                              );
                             } else {
                               Navigator.pushReplacement(
                                 context,
@@ -222,7 +228,7 @@ class _Login extends State<Login> {
                     ),
                   ),
                   SizedBox(height: 16),
-                  Column(
+                  /*Column(
                     mainAxisAlignment: MainAxisAlignment.center, // ← تمركز العناصر في المنتصف
                     children: [
                       Text(
@@ -242,7 +248,7 @@ class _Login extends State<Login> {
                         ),
                       )
                     ],
-                  ),
+                  ),*/
                 ],
               ),
             ),

@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:local_auth/local_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:small_stores_test/login.dart';
 import 'dart:io';
 
 import 'apiService/api_service.dart';
@@ -36,6 +37,8 @@ class _CreateUser extends State<CreateUser> {
   bool _isLoading = false;
   final ApiService apiService = ApiService(client: http.Client());
   late UserApi userApi;
+  bool _isStoreOwner = false; // للتحكم بالـ Switch
+  int _userType = 1; // القيمة الافتراضية: مستخدم عادي
 
   @override
   void initState() {
@@ -249,92 +252,69 @@ class _CreateUser extends State<CreateUser> {
                   ),
                   SizedBox(height: 16),
 
-                  // قسم إضافة البصمة
-                  /* Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          Text(
-                            'إضافة البصمة',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: color_main,
-                            ),
-                          ),
-                          SizedBox(height: 12),
-                          _fingerprintImage != null
-                              ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(_fingerprintImage!, height: 100),
-                          )
-                              : Icon(Icons.fingerprint, size: 50, color: color_main),
-                          SizedBox(height: 16),
-                          ElevatedButton(
-                            style: style_button,
-                            onPressed: _addFingerprint,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _isFingerprintAdded ? Icons.check_circle : Icons.fingerprint,
-                                  color: Colors.white,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  _isFingerprintAdded ? 'تمت إضافة البصمة' : 'إضافة بصمة',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),*/
+
                   SizedBox(height: 16),
+                  // زر Switch لتحديد صاحب متجر
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('صاحب مشروع', style: style_text_normal),
+                      Switch(
+                        value: _isStoreOwner,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _isStoreOwner = value;
+                            _userType = value ? 1 : 2; // إذا مفعّل type = 1 وإلا type = 2
+                          });
+                        },
+                        activeColor: color_main,
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+
                   ElevatedButton(
                     style: styleButton(color_main),
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          setState(() => _isLoading = true);
-                          final result = await AuthService.register(
-                            name: '${_firstNameController.text} ${_lastNameController.text}',
-                            email: _emailController.text,
-                            phone: '+963 ${_phoneController.text}',
-                            password: _passWordController.text,
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        setState(() => _isLoading = true);
+                        final result = await AuthService.register(
+                          name: '${_firstNameController.text} ${_lastNameController.text}',
+                          email: _emailController.text,
+                          phone: '+963 ${_phoneController.text}',
+                          password: _passWordController.text,
+                          type: _userType, // إرسال النوع
+                        );
+
+                        setState(() => _isLoading = false);
+
+                        if (result['status'] == 200) {
+                          final user = User.fromJson(result['user']);
+                          final token = result['access_token'];
+                          // حفظ البيانات والانتقال للصفحة الرئيسية
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => Login()),
                           );
-
-                          setState(() => _isLoading = false);
-
-                          if (result['status'] == 200) {
-                            final user = User.fromJson(result['user']);
-                            final token = result['access_token'];
-                            // حفظ البيانات والانتقال للصفحة الرئيسية
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => MainPageUser(user: user)),
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("تم إنشاء الحساب بنجاح")),
-                            );
-                          } else {
-                            // الرسالة القادمة من السيرفر مباشرة
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(result['message'])),
-                            );
-                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("تم إنشاء الحساب بنجاح")),
+                          );
+                        } else {
+                          // الرسالة القادمة من السيرفر مباشرة
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(result['message'])),
+                          );
                         }
-                      },
+                      }
+                    },
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width / 3, // ثلث عرض الشاشة
                       child: _isLoading
-                        ? CircularProgressIndicator(color: Colors.white)
-                        : Text(a_login_b),
-                  ),
+                          ? CircularProgressIndicator(color: Colors.white)
+                          : Text(a_login_b,textAlign: TextAlign.center,),
+
+                    ),
+                  )
                 ],
               ),
             ),

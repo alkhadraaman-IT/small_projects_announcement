@@ -13,6 +13,7 @@ import 'package:small_stores_test/style.dart';
 import 'package:small_stores_test/variables.dart';
 
 import 'announcement.dart';
+import 'createuser.dart';
 import 'mainpageuser.dart';
 import 'models/usermodel.dart';
 
@@ -185,6 +186,15 @@ class CustomDrawer extends StatelessWidget {
             ),
           ),
           const Divider(color: Colors.white54),
+
+          if (user.type == 0)
+            ListTile(
+              title: Text(a_createuser_b, style: drawerItemStyle),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CreateUser()),
+              ),
+            ),
           ListTile(
             title: Text(a_logout_d, style: drawerItemStyle),
             onTap: () => _showLogoutConfirmation(context),
