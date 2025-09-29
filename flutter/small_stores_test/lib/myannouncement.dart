@@ -434,142 +434,146 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
                     clipBehavior: Clip.antiAlias,
                     child: Stack(
                       children: [
-                        // صورة الإعلان
-                        Container(
-                          width: double.infinity,
-                          height: double.infinity,
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: NetworkImage(fixedImageUrl),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
+                      // صورة الإعلان
+                      Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: NetworkImage(fixedImageUrl),
+                          fit: BoxFit.cover,
                         ),
+                      ),
+                    ),
 
-                        // تدرج أسفل الإعلان
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Container(
-                            height: 150,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  Colors.black.withOpacity(0.9),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        // أيقونة الخيارات أعلى يسار
-                        Positioned(
-                          top: 8,
-                          left: 8,
-                          child: PopupMenuButton<String>(
-                            icon: Icon(Icons.more_vert,
-                                color: color_Secondary),
-                            onSelected: (value) {
-                              if (value == 'edit') {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => EditAnnouncement(
-                                        announcement: item,
-                                        user: widget.user),
-                                  ),
-                                );
-                              } else if (value == 'delete') {
-                                _showDeleteConfirmation(item, index);
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              PopupMenuItem(
-                                value: 'edit',
-                                child: Text('تعديل',
-                                    style: style_text_normal),
-                              ),
-                              PopupMenuItem(
-                                value: 'delete',
-                                child: Text('حذف',
-                                    style:
-                                    style_text_button_normal_red),
-                              ),
+                    // تدرج أسفل الإعلان
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        height: 150,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.9),
                             ],
                           ),
                         ),
+                      ),
+                    ),
 
-                        // معلومات أسفل الإعلان
-                        Positioned(
-                          bottom: 12,
-                          left: 12,
-                          right: 12,
-                          child: Column(
-                            crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      if (store != null) {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => ShowMyStoreData(
-                                              store: store,
-                                              user: widget.user,
-                                            ),
+                    // أيقونة الخيارات أعلى يسار
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5), // خلفية شبه شفافة
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: PopupMenuButton<String>(
+                          icon: Icon(Icons.more_vert, color: Colors.white),
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EditAnnouncement(
+                                      announcement: item,
+                                      user: widget.user),
+                                ),
+                              );
+                            } else if (value == 'delete') {
+                              _showDeleteConfirmation(item, index);
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Text('تعديل',
+                                  style: style_text_normal),
+                            ),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Text('حذف',
+                                  style:
+                                  style_text_button_normal_red),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                      // معلومات أسفل الإعلان
+                      Positioned(
+                        bottom: 12,
+                        left: 12,
+                        right: 12,
+                        child: Column(
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () {
+                                    if (store != null) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => ShowMyStoreData(
+                                            store: store,
+                                            user: widget.user,
                                           ),
-                                        );
-                                      }
-                                    },
-                                    child: Tooltip(
-                                      message: 'عرض المتجر',
-                                      child: CircleAvatar(
-                                        backgroundImage: storeImage,
-                                        radius: 16,
-                                      ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: Tooltip(
+                                    message: 'عرض المتجر',
+                                    child: CircleAvatar(
+                                      backgroundImage: storeImage,
+                                      radius: 16,
                                     ),
                                   ),
-                                  SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      store?.store_name ??
-                                          'متجر ${item.store_id}',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
+                                ),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    store?.store_name ??
+                                        'متجر ${item.store_id}',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
                                     ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ],
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                item.announcement_description,
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14),
-                                textAlign: TextAlign.right,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                item.announcement_date,
-                                style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 12),
-                                textAlign: TextAlign.right,
-                              ),
-                            ],
-                          ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              item.announcement_description,
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14),
+                              textAlign: TextAlign.right,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              item.announcement_date,
+                              style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12),
+                              textAlign: TextAlign.right,
+                            ),
+                          ],
                         ),
+                      ),
                       ],
                     ),
                   );
