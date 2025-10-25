@@ -152,7 +152,7 @@ class _MyStoreBody extends State<MyStoreBody> {
                 padding: const EdgeInsets.all(8.0),
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: Text('متاجري', style: style_text_titel),
+                  child: Text('$my_store_l', style: style_text_titel),
                 ),
               ),
               SizedBox(height: 16),
@@ -164,7 +164,7 @@ class _MyStoreBody extends State<MyStoreBody> {
                     : _errorMessage.isNotEmpty
                     ? Center(child: Text(_errorMessage))
                     : _filteredStores.isEmpty
-                    ? Center(child: Text('لا توجد متاجر متاحة'))
+                    ? Center(child: Text(my_stores_not_found))
                     : GridView.builder(
                   gridDelegate:
                   SliverGridDelegateWithFixedCrossAxisCount(

@@ -17,12 +17,12 @@ import 'style.dart';
 import 'variables.dart';
 import 'models/usermodel.dart'; // تأكد من استيراد نموذج User
 
-class CreateUser extends StatefulWidget {
+class CreateUserView extends StatefulWidget {
   @override
-  _CreateUser createState() => _CreateUser();
+  _CreateUserView createState() => _CreateUserView();
 }
 
-class _CreateUser extends State<CreateUser> {
+class _CreateUserView extends State<CreateUserView> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -37,7 +37,7 @@ class _CreateUser extends State<CreateUser> {
   bool _isLoading = false;
   final ApiService apiService = ApiService(client: http.Client());
   late UserApi userApi;
-  bool _isStoreOwner = false; // للتحكم بالـ Switch
+  //bool _isStoreOwner = false; // للتحكم بالـ Switch
   int _userType = 1; // القيمة الافتراضية: مستخدم عادي
 
   @override
@@ -214,7 +214,7 @@ class _CreateUser extends State<CreateUser> {
 
                   SizedBox(height: 16),
                   // زر Switch لتحديد صاحب متجر
-                  Row(
+                  /*Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(a_store_owner_label, style: style_text_normal),
@@ -229,7 +229,9 @@ class _CreateUser extends State<CreateUser> {
                         activeColor: color_main,
                       ),
                     ],
-                  ),
+                  ),*/
+                  Text("لإنشاء حساب صاحب مشروع يرجى التواصل مع المدير عبر البريد الالكتروني: alkhadraaman@gmail.com", style: style_text_normal),
+
                   SizedBox(height: 16),
 
                   ElevatedButton(
@@ -242,7 +244,7 @@ class _CreateUser extends State<CreateUser> {
                           email: _emailController.text,
                           phone: '+963 ${_phoneController.text}',
                           password: _passWordController.text,
-                          type: _userType, // إرسال النوع
+                          type: 2, // إرسال النوع
                         );
 
                         setState(() => _isLoading = false);

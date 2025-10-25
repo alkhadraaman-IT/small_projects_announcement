@@ -51,19 +51,19 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         print('Response Body: ${response.body}');
 
         if (response.body.startsWith('<!DOCTYPE') || response.body.startsWith('<html>')) {
-          showError("حدث خطأ في الخادم (صفحة HTML)");
+          showError(erorr_html);
           return;
         }
 
         if (response.statusCode == 200) {
           Navigator.popUntil(context, (route) => route.isFirst);
-          showError("تم تغيير كلمة المرور بنجاح");
+          showError(a_password_reset_success);
         } else {
           Map<String, dynamic> errorBody = jsonDecode(response.body);
-          showError(errorBody['message'] ?? "فشل تغيير كلمة المرور");
+          showError(errorBody['message'] ??a_password_reset_failed );
         }
       } catch (e) {
-        showError("خطأ: $e");
+        showError("$a_error_occurred: $e");
       }
     }
   }
@@ -80,12 +80,12 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             children: [
               image_restpassword,
               SizedBox(height: 16),
-              Text("تعين كلمة المرور الجديدة",style: style_text_titel,),
+              Text(a_reset_password_title ,style: style_text_titel,),
               SizedBox(height: 16),
               TextFormField(
                 controller: _passwordController,
                 decoration: InputDecoration(
-                  labelText: "كلمة المرور الجديدة",
+                  labelText: a_new_password ,
                   prefixIcon: Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -100,10 +100,10 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 obscureText: !isPasswordVisible1,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "يرجى إدخال كلمة المرور";
+                    return a_confirm_password_m ;
                   }
                   if (value.length < 8) {
-                    return 'يجب ان تكون كلمة السر أكثر من 8 محارف'; // رسالة خطأ إذا كانت كلمة المرور أقل من 8 أحرف
+                    return a_password_too_short; // رسالة خطأ إذا كانت كلمة المرور أقل من 8 أحرف
                   }
                   return null;
                 },
@@ -112,7 +112,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               TextFormField(
                 controller: _confirmController,
                 decoration: InputDecoration(
-                  labelText: "تأكيد كلمة المرور",
+                  labelText: a_confirm_password ,
                   prefixIcon: Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -127,13 +127,13 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 obscureText: !isPasswordVisible2,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "يرجى تأكيد كلمة المرور";
+                    return a_confirm_password_m ;
                   }
                   if (value != _passwordController.text) {
-                    return "كلمتا المرور غير متطابقتين";
+                    return a_passwords_not_match ;
                   }
                   if (value.length < 8) {
-                    return 'يجب أن تكون كلمة السر أكثر من 8 محارف'; // رسالة خطأ إذا كانت كلمة المرور أقل من 8 أحرف
+                    return a_password_too_short; // رسالة خطأ إذا كانت كلمة المرور أقل من 8 أحرف
                   }
                   return null;
                 },
@@ -144,7 +144,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             child:ElevatedButton(
                 onPressed: _resetPassword,
                 style: styleButton(color_main),
-                child: Text("تغيير"),
+                child: Text(a_change_password ),
               ),)
             ],
           ),

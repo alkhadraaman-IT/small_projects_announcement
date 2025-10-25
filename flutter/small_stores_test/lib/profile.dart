@@ -40,6 +40,15 @@ class _Profile extends State<Profile> {
     loadColor().then((_) {
       setState(() {}); // لتحديث الواجهة بعد تحميل اللون
     });
+    loadLanguage().then((_) {
+      setState(() {}); // لتحديث الواجهة بعد تحميل اللغة
+    });
+  }
+
+  void updateLanguage(String lang) {
+    setState(() {
+      language_app = lang;
+    });
   }
 
   @override
@@ -59,7 +68,7 @@ class _Profile extends State<Profile> {
               });
             },
           ),
-              Text('لون التطبيق', style: style_text_titel),
+              Text('$color_app', style: style_text_titel),
               SizedBox(height: 16),
               GridView.count(
                 crossAxisCount: 6,
@@ -92,6 +101,50 @@ class _Profile extends State<Profile> {
                   );
                 }).toList(),
               ),
+              SizedBox(height: 16),
+              Text(language_l, style: style_text_titel),
+
+              RadioListTile<String>(
+                title: Text("العربية"),
+                value: "ar",
+                groupValue: language_app,
+                onChanged: (val) async {
+                  setState(() {
+                    language_app = val!;
+                  });
+                  await saveLanguage(language_app); // حفظ اللغة
+                  (context.findAncestorStateOfType<MyAppState>())?.updateLanguage(language_app);
+
+                  // ✅ إعادة تحميل الصفحة تلقائياً
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Profile(user: widget.user),
+                    ),
+                  );
+                },
+              ),
+
+              RadioListTile<String>(
+                title: Text("English"),
+                value: "en",
+                groupValue: language_app,
+                onChanged: (val) async {
+                  setState(() {
+                    language_app = val!;
+                  });
+                  await saveLanguage(language_app); // حفظ اللغة
+                  (context.findAncestorStateOfType<MyAppState>())?.updateLanguage(language_app);
+
+                  //  إعادة تحميل الصفحة تلقائياً
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Profile(user: widget.user),
+                    ),
+                  );
+                },
+              ),
 
             ])),
       ),
@@ -106,7 +159,7 @@ class _Profile extends State<Profile> {
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('جاري تحميل البيانات...')),
+              SnackBar(content: Text(a_loading_data)),
             );
           }
         },
@@ -135,11 +188,11 @@ class _ProfileBodyState extends State<ProfileBody> {
 
   String _getUserTypeText(int type) {
     if (type < 1) {
-      return 'أدمن';
+      return a_user_type_admin;
     } else if (type == 1) {
-      return 'صاحب مشروع';
+      return a_user_type_store_owner;
     } else if (type == 2) {
-      return 'زائر';
+      return a_user_type_regular;
     } else {
       return 'غير معروف';
     }
@@ -197,25 +250,29 @@ class _ProfileBodyState extends State<ProfileBody> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // معلومات المستخدم كما عندك
+          SizedBox(height: 32),
           Center(
-            child: CircleAvatar(
+            child: Column(
+              children: [
+            CircleAvatar(
               radius: 70,
               backgroundImage: (_user.profile_photo != null && _user.profile_photo!.isNotEmpty)
                   ? NetworkImage(_user.profile_photo!)
                   : AssetImage('assets/images/img_3.png') as ImageProvider,
               backgroundColor: Colors.grey[200],
             ),
-          ),
+              SizedBox(height: 32),
+              Text('$a_user_name_s: ${_user.name}', style: style_text_normal, textAlign: TextAlign.right),
+              SizedBox(height: 16),
+              Text('$a_user_email_s: ${_user.email}', style: style_text_normal, textAlign: TextAlign.right),
+              SizedBox(height: 16),
+              Text('$a_user_phone_s: ${_user.phone}', style: style_text_normal, textAlign: TextAlign.right),
+              SizedBox(height: 16),
+              Text('$type_user: ${_getUserTypeText(_user.type)}', style: style_text_normal, textAlign: TextAlign.right,),
 
-          SizedBox(height: 32),
-          Text('الاسم: ${_user.name}', style: style_text_normal, textAlign: TextAlign.right),
-          SizedBox(height: 16),
-          Text('البريد: ${_user.email}', style: style_text_normal, textAlign: TextAlign.right),
-          SizedBox(height: 16),
-          Text('الهاتف: ${_user.phone}', style: style_text_normal, textAlign: TextAlign.right),
-          SizedBox(height: 16),
-          Text('نوع الحساب: ${_getUserTypeText(_user.type)}', style: style_text_normal, textAlign: TextAlign.right,),
-
+              ]
+            ),
+          )
           // هنا نضيف اختيار اللون
 
         ],

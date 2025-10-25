@@ -1,6 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:small_stores_test/apiService/api.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'package:small_stores_test/appbar.dart';
 import 'package:small_stores_test/editstore.dart';
@@ -35,17 +38,17 @@ class _Store extends State<Store> {
     bool firstConfirm = await showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('تأكيد الحذف', style: style_text_titel),
-        content: Text('هل تريد حذف هذا المتجر؟'),
+        title: Text(a_confirm_delete_l, style: style_text_titel),
+        content: Text(a_delete_store_question ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('إلغاء',
+            child: Text(a_cancel,
                 style: style_text_button_normal_2(color_Secondary)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('نعم', style: style_text_button_normal_red),
+            child: Text(a_yes, style: style_text_button_normal_red),
           ),
         ],
       ),
@@ -55,18 +58,18 @@ class _Store extends State<Store> {
       bool finalConfirm = await showDialog(
         context: context,
         builder: (_) => AlertDialog(
-          title: Text('تأكيد نهائي', style: style_text_titel),
+          title: Text(a_confirm_end_l, style: style_text_titel),
           content: Text(
-              'هل أنت متأكد من أنك تريد حذف هذا المتجر؟ لا يمكن التراجع عن هذه العملية.'),
+              a_delete_store_final_warning ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text('إلغاء',
+              child: Text(a_cancel,
                   style: style_text_button_normal_2(color_Secondary)),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: Text('تأكيد الحذف', style: style_text_button_normal_red),
+              child: Text(a_confirm_delete_l, style: style_text_button_normal_red),
             ),
           ],
         ),
@@ -85,11 +88,11 @@ class _Store extends State<Store> {
       await storeApi.deleteStore(_store!.id);
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تم حذف المتجر بنجاح')),
+        SnackBar(content: Text(a_store_deleted_success )),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل حذف المتجر: $e')),
+        SnackBar(content: Text('$a_store_delete_failed : $e')),
       );
     }
   }
@@ -112,7 +115,7 @@ class _Store extends State<Store> {
           if (_store != null && showOptions) ...[
             // زر التعديل
             FloatingActionButton(
-              heroTag: "editStoreBtn",
+              //heroTag: "editStoreBtn",
               onPressed: () {
                 setState(() => showOptions = false);
                 Navigator.push(
@@ -130,7 +133,7 @@ class _Store extends State<Store> {
 
             // زر الإعلان
             FloatingActionButton(
-              heroTag: "addAnnouncementBtn",
+              //heroTag: "addAnnouncementBtn",
               onPressed: () {
                 setState(() => showOptions = false);
                 Navigator.push(
@@ -150,7 +153,7 @@ class _Store extends State<Store> {
 
             // زر الحذف
             FloatingActionButton(
-              heroTag: "deleteStoreBtn",
+              //heroTag: "deleteStoreBtn",
               onPressed: () {
                 setState(() => showOptions = false);
                 _showDeleteConfirmation(context);
@@ -163,7 +166,7 @@ class _Store extends State<Store> {
 
           // زر المزيد
           FloatingActionButton(
-            heroTag: "moreOptionsBtn",
+            //heroTag: "moreOptionsBtn",
             onPressed: () {
               setState(() {
                 showOptions = !showOptions;
@@ -193,10 +196,21 @@ class _StoreBody extends State<StoreBody> {
   List<ClassModel> _classes = [];
   bool _isLoading = true;
 
+
   @override
   void initState() {
     super.initState();
     fetchStore();
+  }
+
+  void shareStore(String storeName) {
+    final String shareLink =
+        "${ApiService.ip_server}/store-share?id=${widget.store_id}";
+    final String message =
+        'شاهد هذا المتجر المميز: $storeName\n'
+        'لمشاهدة التفاصيل وحفظه في المفضلة، حمل تطبيقنا الآن!\n'
+        '$shareLink';
+    Share.share(message);
   }
 
   Future<void> fetchStore() async {
@@ -239,9 +253,10 @@ class _StoreBody extends State<StoreBody> {
       return Center(child: CircularProgressIndicator());
     }
 
+    final String shareUrl_data_store = '${ApiService.ip_server}/store-share?id=${widget.store_id}';
+
     String className = _classes.firstWhere(
           (c) => c.id == _store!.class_id,
-      orElse: () => ClassModel(id: 0, class_name: "غير معروف"),
     ).class_name;
 
     return SingleChildScrollView(
@@ -250,30 +265,56 @@ class _StoreBody extends State<StoreBody> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-          Align(
-            alignment: Alignment.center,
-              child: ClipOval(
-                child: Image.network(
-                  _getImageUrl(_store!.store_photo),
-                  height: 140,
-                  width: 140,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                          : null,
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    print("❌ خطأ في الصورة: $error");
-                    return Icon(Icons.store, size: 60, color: Colors.grey);
-                  },
-                ),
+            Align(
+              alignment: Alignment.center,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  ClipOval(
+                    child: Image.network(
+                      _getImageUrl(_store!.store_photo),
+                      height: 160,
+                      width: 160,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return SizedBox(
+                          height: 160,
+                          width: 160,
+                          child: Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(Icons.store, size: 80, color: Colors.grey);
+                      },
+                    ),
+                  ),
+                  Positioned(
+                    top: 20,
+                    left: 24,
+                    child: GestureDetector(
+                      onTap: () {
+                        shareStore(_store!.store_name);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.share,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-          ),
+            ),
             SizedBox(height: 16),
         Row(
           children: [
@@ -292,10 +333,14 @@ class _StoreBody extends State<StoreBody> {
                 Icon(Icons.place,color: color_main ,size: 24),
                 SizedBox(width: 10),
                 Text(
-                  '${a_store_plane_s}: ${_store!.store_place}',
+                  '${a_store_plane_s}:',
                   style: style_text_normal,
                 ),
               ],
+            ),
+            Text(
+              '    ${_store!.store_place}',
+              style: style_text_normal,
             ),
             SizedBox(height: 16),
         Row(
@@ -330,7 +375,30 @@ class _StoreBody extends State<StoreBody> {
                   ' ${_store!.store_description}',
               style: style_text_normal,
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 32), // زيادة المسافة قبل الـ QR
+
+            // QR في المنتصف
+            Center(
+              child: Column(
+                children: [
+                  QrImageView(
+                    data: shareUrl_data_store,
+                    version: QrVersions.auto,
+                    size: 160.0,
+                    backgroundColor: Colors.white,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'QR Code للمتجر',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

@@ -37,25 +37,48 @@ class _EditStore extends State<EditStore> {
   final TextEditingController _storeImageController = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
-  String? _selectedClassStore;
 
   List<ClassModel> _classList = [];
+  ClassModel? _selectedClass;
   bool _isLoadingClasses = true;
+  bool _isSubmitting = false;
+
+  // دالة للحصول على الاسم المترجم للفئة
+  String _getTranslatedClassName(ClassModel classItem) {
+    return language_app == "ar"
+        ? classItem.class_name
+        : (classItem.class_name_english ?? classItem.class_name);
+  }
 
   final ImagePicker _picker = ImagePicker();
-  Uint8List? _webImage; // 👈 خاص بالويب
+  Uint8List? _webImage;
+  File? _selectedImage;
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile =
-    await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+      maxWidth: 800,
+      maxHeight: 800,
+    );
+
     if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      if (bytes.length > 4 * 1024 * 1024) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(a_image_too_large))
+        );
+        return;
+      }
+
       if (kIsWeb) {
-        _webImage = await pickedFile.readAsBytes();
         setState(() {
+          _webImage = bytes;
           _storeImageController.text = pickedFile.name;
         });
       } else {
         setState(() {
+          _selectedImage = File(pickedFile.path);
           _storeImageController.text = pickedFile.path;
         });
       }
@@ -68,11 +91,9 @@ class _EditStore extends State<EditStore> {
 
     _storeNameController.text = widget.store.store_name;
     _storePlanController.text = widget.store.store_place;
-// إزالة +963 من الرقم قبل وضعه في الحقل
     _storePhoneController.text = widget.store.store_phone.startsWith('+963 ')
         ? widget.store.store_phone.substring(4)
         : widget.store.store_phone;
-
     _storeNoteController.text = widget.store.store_description;
     _storeImageController.text = widget.store.store_photo;
 
@@ -85,18 +106,84 @@ class _EditStore extends State<EditStore> {
       final classes = await classApi.getClasses();
       setState(() {
         _classList = classes;
-        _isLoadingClasses = false;
+        _selectedClass = _classList.firstWhere(
+                (classModel) => classModel.id == widget.store.class_id,
 
-        final defaultClass = _classList.firstWhere(
-              (classModel) => classModel.id == widget.store.class_id,
         );
-        _selectedClassStore = defaultClass.class_name;
+        _isLoadingClasses = false;
       });
     } catch (e) {
-      print("خطأ أثناء جلب الأصناف: $e");
+      print("${a_error_fetching_categories}: $e");
       setState(() {
         _isLoadingClasses = false;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(a_error_fetching_categories)),
+      );
+    }
+  }
+
+  Future<void> _updateStore() async {
+    if (_formKey.currentState!.validate()) {
+      if (_selectedClass == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(a_please_select_store_type))
+        );
+        return;
+      }
+
+      setState(() {
+        _isSubmitting = true;
+      });
+
+      try {
+        final api = StoreApi(apiService: ApiService(client: http.Client()));
+
+        await api.updateStore(
+          id: widget.store.id,
+          store_name: _storeNameController.text,
+          store_phone: '+963 ${_storePhoneController.text}',
+          store_place: _storePlanController.text,
+          class_id: _selectedClass!.id,
+          store_description: _storeNoteController.text,
+          store_state: 1,
+          store_photo: !kIsWeb ? _selectedImage : null,
+          storePhotoBytes: kIsWeb ? _webImage : null,
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(a_store_updated_success)),
+        );
+
+        // العودة للصفحة السابقة بعد التحديث الناجح
+        Navigator.pop(context);
+
+      } catch (e) {
+        String errorMessage = a_store_update_failed;
+
+        if (e is http.Response) {
+          try {
+            final body = jsonDecode(e.body);
+            if (body['errors'] != null) {
+              errorMessage = body['errors'].values.first[0];
+            } else if (body['message'] != null) {
+              errorMessage = body['message'];
+            }
+          } catch (_) {
+            errorMessage = a_server_response_error;
+          }
+        } else if (e is Exception) {
+          errorMessage = e.toString();
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      } finally {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
 
@@ -126,14 +213,15 @@ class _EditStore extends State<EditStore> {
                   image_logo_b,
                   SizedBox(height: 16),
                   Text(a_edit_store_s, style: style_text_titel),
-                  SizedBox(height: 16),
+                  SizedBox(height: 24),
 
-                  // 🏬 اسم المتجر
+                  // اسم المتجر
                   TextFormField(
                     controller: _storeNameController,
                     decoration: InputDecoration(
                       labelText: a_store_name_s,
                       prefixIcon: Icon(Icons.storefront_rounded),
+                      border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.name,
                     validator: (value) =>
@@ -141,47 +229,51 @@ class _EditStore extends State<EditStore> {
                   ),
                   SizedBox(height: 16),
 
-                  // 📂 الصنف
-                  DropdownButtonFormField<String>(
-                    value: _selectedClassStore,
-                    decoration: InputDecoration(
-                      labelText: a_class_store_s,
-                      prefixIcon: Icon(Icons.type_specimen),
+                  // فئة المتجر - القائمة المنسدلة
+                  AbsorbPointer(
+                    absorbing: true, // يمنع التفاعل
+                    child: DropdownButtonFormField<ClassModel>(
+                      value: _selectedClass,
+                      decoration: InputDecoration(
+                        labelText: a_class_store_s,
+                        prefixIcon: Icon(Icons.category),
+                        border: OutlineInputBorder(),
+                      ),
+                      items: _classList.map((classModel) {
+                        return DropdownMenuItem<ClassModel>(
+                          value: classModel,
+                          child: Text(_getTranslatedClassName(classModel), style: style_text_normal),
+                        );
+                      }).toList(),
+                      onChanged: null, // يعطل التغيير
+                      validator: (value) => value == null ? a_store_class_m : null,
+                      isExpanded: true,
                     ),
-                    items: _isLoadingClasses
-                        ? [
-                      DropdownMenuItem(
-                          value: null, child: Text('جاري التحميل...'))
-                    ]
-                        : _classList.map((classModel) {
-                      return DropdownMenuItem<String>(
-                        value: classModel.class_name,
-                        child: Text(classModel.class_name),
-                      );
-                    }).toList(),
-                    onChanged: null, // ممنوع التغيير
                   ),
+
                   SizedBox(height: 16),
 
-                  // 📝 ملاحظات
+                  // وصف المتجر
                   TextFormField(
                     controller: _storeNoteController,
                     maxLength: 255,
+                    maxLines: 3,
                     decoration: InputDecoration(
                       labelText: a_store_note_s,
                       prefixIcon: Icon(Icons.sticky_note_2_rounded),
+                      border: OutlineInputBorder(),
+                      alignLabelWithHint: true,
                     ),
                     validator: (value) =>
-                    value == null || value.isEmpty ? a_email_m : null,
+                    value == null || value.isEmpty ? a_please_enter_store_overview : null,
                   ),
-                  SizedBox(height: 8),
+                  SizedBox(height: 16),
 
-                  // ☎ الهاتف
-
+                  // هاتف المتجر
                   TextFormField(
                     controller: _storePhoneController,
                     decoration: InputDecoration(
-                      labelText: a_phone_l,
+                      labelText: a_store_phone_s,
                       prefixIcon: Icon(Icons.phone),
                       prefix: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 8),
@@ -194,6 +286,7 @@ class _EditStore extends State<EditStore> {
                           ),
                         ),
                       ),
+                      border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.phone,
                     inputFormatters: [
@@ -201,7 +294,7 @@ class _EditStore extends State<EditStore> {
                       FilteringTextInputFormatter.digitsOnly,
                     ],
                     validator: (value) =>
-                    value == null || value.isEmpty ? a_phone_m : null,
+                    value == null || value.isEmpty ? a_please_enter_store_phone : null,
                     onChanged: (value) {
                       if (value.startsWith('0')) {
                         _storePhoneController.text = value.substring(1);
@@ -215,104 +308,125 @@ class _EditStore extends State<EditStore> {
                   ),
                   SizedBox(height: 16),
 
-                  // 📍 المكان
+                  // موقع المتجر
                   TextFormField(
                     controller: _storePlanController,
                     maxLength: 255,
                     decoration: InputDecoration(
                       labelText: a_store_plane_s,
                       prefixIcon: Icon(Icons.place),
+                      border: OutlineInputBorder(),
                     ),
                     validator: (value) =>
-                    value == null || value.isEmpty ? a_plan_store_m : null,
+                    value == null || value.isEmpty ? a_please_enter_store_location : null,
                   ),
                   SizedBox(height: 16),
 
-                  // 🖼 صورة
-                  Row(
+                  // صورة المتجر
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _storeImageController,
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            labelText: a_store_class_s,
-                            prefixIcon: Icon(Icons.image),
-                          ),
-                          validator: (value) => value == null || value.isEmpty
-                              ? a_store_logo_m
-                              : null,
+                      Text(
+                        a_store_logo_s,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[700],
                         ),
                       ),
-                      SizedBox(width: 8),
-                      ElevatedButton(
-                        style: styleButton(color_main),
-                        onPressed: _pickImage,
-                        child: Text(a_edit_b),
+                      SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _storeImageController,
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                hintText: a_no_image_selected,
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          ElevatedButton(
+                            style: styleButton(color_main),
+                            onPressed: _pickImage,
+                            child: Text(a_select_image_button),
+                          ),
+                        ],
                       ),
+
+                      // معاينة الصورة
+                      SizedBox(height: 16),
+                      if (_webImage != null || _selectedImage != null)
+                        Column(
+                          children: [
+                            Text(
+                              language_app == "ar" ? "الصورة الجديدة:" : "New Image:",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 8),
+                            Container(
+                              height: 120,
+                              width: 120,
+                              decoration: BoxDecoration(
+                                border: Border.all(color: color_main, width: 2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: kIsWeb
+                                  ? Image.memory(_webImage!, fit: BoxFit.cover)
+                                  : Image.file(_selectedImage!, fit: BoxFit.cover),
+                            ),
+                          ],
+                        )
+                      else if (widget.store.store_photo.isNotEmpty)
+                        Column(
+                          children: [
+                            Text(
+                              language_app == "ar" ? "الصورة الحالية:" : "Current Image:",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 8),
+                            Container(
+                              height: 120,
+                              width: 120,
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey, width: 1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Image.network(
+                                widget.store.store_photo,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Icon(Icons.store, size: 40, color: Colors.grey);
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
-                  SizedBox(height: 16),
+                  SizedBox(height: 32),
 
                   // زر التعديل
                   SizedBox(
-                    width: MediaQuery.of(context).size.width / 3,
+                    width: MediaQuery.of(context).size.width / 2,
                     child: ElevatedButton(
                       style: styleButton(color_main),
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          try {
-                            final selectedClass = _classList.firstWhere(
-                                  (classModel) => classModel.class_name == _selectedClassStore,
-                            );
-                            final int classId = selectedClass.id;
-
-                            final api = StoreApi(apiService: ApiService(client: http.Client()));
-
-                            await api.updateStore(
-                              id: widget.store.id,
-                              store_name: _storeNameController.text,
-                              store_phone: '+963 ${_storePhoneController.text}',
-                              store_place: _storePlanController.text,
-                              class_id: classId,
-                              store_description: _storeNoteController.text,
-                              store_state: 1,
-                              store_photo: !kIsWeb ? File(_storeImageController.text) : null,
-                              storePhotoBytes: kIsWeb ? _webImage : null,
-                            );
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('تم تعديل المتجر بنجاح ✅')),
-                            );
-                            Navigator.pop(context);
-                          } catch (e) {
-                            String errorMessage = "حدث خطأ أثناء التعديل ❌";
-
-                            // معالجة الأخطاء بشكل صحيح
-                            if (e is http.Response) {
-                              try {
-                                final body = jsonDecode(e.body);
-                                if (body['errors'] != null) {
-                                  errorMessage = body['errors'].values.first[0];
-                                } else if (body['message'] != null) {
-                                  errorMessage = body['message'];
-                                }
-                              } catch (_) {
-                                errorMessage = "خطأ في معالجة الاستجابة من الخادم";
-                              }
-                            } else if (e is Exception) {
-                              errorMessage = e.toString();
-                            }
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(errorMessage)),
-                            );
-                          }
-                        }
-                      },
-                      child: Text(a_edit_b),
+                      onPressed: _isSubmitting ? null : _updateStore,
+                      child: _isSubmitting
+                          ? SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                          : Text(a_edit_b),
                     ),
                   ),
+                  SizedBox(height: 16),
                 ],
               ),
             ),

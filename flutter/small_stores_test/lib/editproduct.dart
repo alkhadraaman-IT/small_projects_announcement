@@ -68,6 +68,13 @@ class _EditProduct extends State<EditProduct> {
     });
   }
 
+  // دالة للحصول على الاسم المترجم للنوع
+  String _getTranslatedTypeName(ProductType type) {
+    return language_app == "ar"
+        ? type.type_name
+        : (type.type_name_english ?? type.type_name);
+  }
+
   Uint8List? _productImageBytes; // إضافة متغير لتخزين bytes الصورة
 
   //final ImagePicker _picker = ImagePicker();
@@ -84,7 +91,7 @@ class _EditProduct extends State<EditProduct> {
       final bytes = await pickedFile.readAsBytes();
       if (bytes.length > 4 * 1024 * 1024) { // 4MB كحد أقصى
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("حجم الصورة كبير جداً"))
+            SnackBar(content: Text(a_image_too_large))
         );
         return;
       }
@@ -133,16 +140,21 @@ class _EditProduct extends State<EditProduct> {
                 validator: (value) => value == null || value.isEmpty ? "يرجى ادخال اسم المنتج" : null,
               ),
               SizedBox(height: 16),
+              // نوع المنتج - القائمة المنسدلة
               DropdownButtonFormField<ProductType>(
                 value: _selectedType,
                 decoration: InputDecoration(
-                  labelText: 'نوع المنتج',
+                  labelText: a_product_type_label,
                   prefixIcon: Icon(Icons.category),
+                  border: OutlineInputBorder(),
                 ),
                 items: _productTypes.map((type) {
                   return DropdownMenuItem<ProductType>(
                     value: type,
-                    child: Text(type.type_name),
+                    child: Text(
+                      _getTranslatedTypeName(type),
+                      style: style_text_normal,
+                    ),
                   );
                 }).toList(),
                 onChanged: (newType) {
@@ -152,10 +164,15 @@ class _EditProduct extends State<EditProduct> {
                 },
                 validator: (value) {
                   if (value == null) {
-                    return 'يرجى اختيار نوع المنتج';
+                    return a_please_select_product_type;
                   }
                   return null;
                 },
+                isExpanded: true,
+                hint: Text(
+                  a_please_select_product_type,
+                  style: style_text_normal,
+                ),
               ),
               SizedBox(height: 8),
               TextFormField(
@@ -165,7 +182,7 @@ class _EditProduct extends State<EditProduct> {
                   labelText: a_product_note_s,
                   prefixIcon: Icon(Icons.sticky_note_2_rounded),
                 ),
-                validator: (value) => value == null || value.isEmpty ? "يرجى ادخال لمحة عن المنتج" : null,
+                validator: (value) => value == null || value.isEmpty ? a_please_enter_product_overview : null,
               ),
               SizedBox(height: 16),
               TextFormField(
@@ -181,7 +198,7 @@ class _EditProduct extends State<EditProduct> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "برجى ادخال سعر المنتج";
+                    return a_please_enter_product_price;
                   }
                   return null;
                 },
@@ -220,7 +237,7 @@ class _EditProduct extends State<EditProduct> {
                       keyboardType: TextInputType.name,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return "يرجى ادخال صورة المنتج";
+                          return a_please_enter_product_image;
                         }
                         return null;
                       },
@@ -273,7 +290,7 @@ class _EditProduct extends State<EditProduct> {
                         );
 
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('تم تحديث المنتج بنجاح')),
+                          SnackBar(content: Text(a_product_updated_success)),
                         );
                         Navigator.pop(context);
                       }catch (e) {

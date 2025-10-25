@@ -17,9 +17,9 @@ import 'style.dart';
 import 'variables.dart';
 
 class EditProfile extends StatefulWidget {
-  final User user; // 👈 أضف هذا
+  final User user;
 
-  EditProfile({required this.user}); // 👈 عدّل الكونستركتر
+  EditProfile({required this.user});
 
   @override
   _EditProfile createState() => _EditProfile();
@@ -145,7 +145,7 @@ class _EditProfile extends State<EditProfile> {
                               return a_email_m;
                             }
                             if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.\w+$').hasMatch(value)) {
-                              return 'البريد الإلكتروني غير صالح';
+                              return a_invalid_email_error;
                             }
                             return null;
                           },
@@ -285,7 +285,7 @@ class _EditProfile extends State<EditProfile> {
                                   );
 
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('تم تعديل الحساب بنجاح')),
+                                    SnackBar(content: Text(a_profile_updated_success)),
                                   );
                                   Navigator.pop(context);
 
@@ -296,7 +296,7 @@ class _EditProfile extends State<EditProfile> {
                                 } catch (e) {
                                   print('خطأ أثناء تعديل المستخدم: $e');
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('فشل التعديل')),
+                                    SnackBar(content: Text(a_profile_update_failed)),
                                   );
                                 }
                               }

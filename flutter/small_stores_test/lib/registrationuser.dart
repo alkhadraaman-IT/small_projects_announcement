@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:small_stores_test/showfilerequests.dart';
 import 'package:small_stores_test/showproductdata.dart';
 
 import 'apiService/api_service.dart';
@@ -8,12 +9,12 @@ import 'models/usermodel.dart';
 import 'style.dart';
 import 'variables.dart';
 
-class Statistics extends StatefulWidget {
+class RegistratiOnUser extends StatefulWidget {
   @override
-  _Statistics createState() => _Statistics();
+  _RegistratiOnUser createState() => _RegistratiOnUser();
 }
 
-class _Statistics extends State<Statistics> {
+class _RegistratiOnUser extends State<RegistratiOnUser> {
   final TextEditingController _searchController = TextEditingController();
   List<User> _allUsers = [];
   List<User> _filteredUsers = [];
@@ -42,7 +43,7 @@ class _Statistics extends State<Statistics> {
 
   void _loadUsers() async {
     try {
-      final users = await UserApi(apiService: ApiService(client: http.Client())).getUsers();
+      final users = await UserApi(apiService: ApiService(client: http.Client())).getno_deleteUser();
       setState(() {
         _allUsers = users;
         _filteredUsers = users;
@@ -154,7 +155,7 @@ class _Statistics extends State<Statistics> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ShowProfileData(user: user),
+                              builder: (context) => ShowFilereQuests(user: user),
                             ),
                           );
                         },

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart' show Uint8List, kIsWeb;
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:small_stores_test/editproduct.dart';
 import 'package:small_stores_test/showstoredata.dart';
@@ -45,16 +45,16 @@ class _Product extends State<Product> {
     bool firstConfirm = await showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('تأكيد الحذف',style: style_text_titel,),
-        content: Text('هل تريد حذف هذا المنتج؟'),
+        title: Text('$a_confirm_delete_l',style: style_text_titel,),
+        content: Text('$delete_product_q_l'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('إلغاء',style: style_text_button_normal_2(color_Secondary),),
+            child: Text('$a_cancel',style: style_text_button_normal_2(color_Secondary),),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('نعم', style: style_text_button_normal_red),
+            child: Text('$a_yes', style: style_text_button_normal_red),
           ),
         ],
       ),
@@ -65,16 +65,16 @@ class _Product extends State<Product> {
       bool finalConfirm = await showDialog(
         context: context,
         builder: (_) => AlertDialog(
-          title: Text('تأكيد نهائي',style: style_text_titel,),
-          content: Text('هل أنت متأكد من أنك تريد حذف هذا المنتج؟ لا يمكن التراجع عن هذه العملية.'),
+          title: Text('$a_confirm_end_l',style: style_text_titel,),
+          content: Text('$delete_product_end_l'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: Text('إلغاء',style: style_text_button_normal_2(color_Secondary),),
+              child: Text('$a_cancel',style: style_text_button_normal_2(color_Secondary),),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: Text('تأكيد الحذف', style: style_text_button_normal_red),
+              child: Text('$a_confirm', style: style_text_button_normal_red),
             ),
           ],
         ),
@@ -93,11 +93,11 @@ class _Product extends State<Product> {
       await productApi.deleteProduct(_product!.id);
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تم حذف المنتج بنجاح')),
+        SnackBar(content: Text('$delete_product_m')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل حذف المنتج: $e')),
+        SnackBar(content: Text('$error_delete_product_m: $e')),
       );
     }
   }
@@ -105,7 +105,7 @@ class _Product extends State<Product> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(),
+      //appBar: CustomAppBar(),
       drawer: CustomDrawer(user: widget.user),
       body: SingleChildScrollView(
         child: Center(
@@ -128,7 +128,7 @@ class _Product extends State<Product> {
         children: [
           if (_product != null && showOptions) ...[
             FloatingActionButton(
-              heroTag: "editBtn",
+              //heroTag: "editBtn",
               onPressed: () {
                 Navigator.push(
                   context,
@@ -147,7 +147,7 @@ class _Product extends State<Product> {
             SizedBox(height: 10),
 
             FloatingActionButton(
-              heroTag: "deleteBtn",
+              //heroTag: "deleteBtn",
               onPressed: () {
                 setState(() {
                   showOptions = false;
@@ -161,7 +161,7 @@ class _Product extends State<Product> {
           ],
 
           FloatingActionButton(
-            heroTag: "moreBtn",
+            //heroTag: "moreBtn",
             onPressed: () {
               setState(() {
                 showOptions = !showOptions;
@@ -198,6 +198,7 @@ class ProductBody extends StatefulWidget {
 }
 
 class _ProductBody extends State<ProductBody> {
+
   late ProductModel _product;
   late String _typeName = '';
   late String _storeName = '';
@@ -229,15 +230,30 @@ class _ProductBody extends State<ProductBody> {
     return url;
   }
 
+  void shareProduct(int productId, String productName) {
+
+    // 2. دمج رابط صفحة الهبوط مع ID المنتج
+    final String shareLink = "${ApiService.ip_server}/product-share?id=${widget.product_id}";
+
+    final String message =
+        'شاهد هذا المنتج المميز: $productName\n'
+        'لمشاهدة التفاصيل وحفظه في المفضلة، حمل تطبيقنا الآن!\n'
+        '$shareLink'; // هذا هو الرابط الذي سيتم مشاركته
+
+    Share.share(message); // استخدام حزمة share_plus
+  }
+
   Future<void> fetchProduct() async {
     try {
       final productApi = ProductApi(apiService: ApiService(client: http.Client()));
       final typeApi = TypeApi(apiService: ApiService(client: http.Client()));
       final storeApi = StoreApi(apiService: ApiService(client: http.Client()));
+      final favoritApi = FavoritApi(apiService: ApiService(client: http.Client())); // ✅ أضف هذا
 
       final fetchedProduct = await productApi.getProduct(widget.product_id);
       final fetchedType = await typeApi.getType(fetchedProduct.type_id);
       final fetchedStore = await storeApi.getStore(fetchedProduct.store_id);
+      final likesCount = await favoritApi.getProductLikesCount(fetchedProduct.id); // ✅ جلب عدد المفضلات
 
       if (widget.onProductLoaded != null) {
         widget.onProductLoaded!(fetchedProduct);
@@ -249,15 +265,18 @@ class _ProductBody extends State<ProductBody> {
         _storeName = fetchedStore.store_name;
         _storePhoto = fetchedStore.store_photo;
         _productAvailable = _product.product_available;
+        _likesCount = likesCount; // تحديث عدد المفضلات
         _isLoading = false;
       });
     } catch (e) {
-      print('خطأ أثناء جلب المنتج أو المتجر أو النوع: $e');
+      print('خطأ أثناء جلب المنتج أو المتجر أو النوع او عدد معجبين: $e');
       setState(() {
         _isLoading = false;
       });
     }
   }
+
+
 
   Future<void> _updateAvailability(bool newValue) async {
     try {
@@ -272,7 +291,7 @@ class _ProductBody extends State<ProductBody> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(newValue ? 'تم تفعيل توفر المنتج' : 'تم إلغاء توفر المنتج'),
+          content: Text(newValue ? '$product_activated_m' : '$product_activated_no_m'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -282,7 +301,7 @@ class _ProductBody extends State<ProductBody> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('حدث خطأ أثناء التحديث'),
+          content: Text('$error_update_data_m'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -293,6 +312,8 @@ class _ProductBody extends State<ProductBody> {
   Widget build(BuildContext context) {
     if (_isLoading) return Center(child: CircularProgressIndicator());
 
+    final String shareUrl_data_product = "${ApiService.ip_server}/product-share?id=${widget.product_id}";
+
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -300,18 +321,53 @@ class _ProductBody extends State<ProductBody> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // صورة المنتج
-          Container(
-          width: double.infinity,
-          height: 300,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            image: DecorationImage(
-              image: NetworkImage(
-                _getImageUrl(_product.product_photo_1),
-              ),
-              fit: BoxFit.cover,
+            Stack(
+              children: [
+                // 1. صورة المنتج (الطبقة السفلية)
+                Container(
+                  width: double.infinity,
+                  height: 300,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    image: DecorationImage(
+                      image: NetworkImage(
+                        _getImageUrl(_product.product_photo_1),
+                      ),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+
+                // 2. زر المشاركة (الطبقة العلوية)
+                Positioned(
+                  top: 10, // بعد عن الحافة العلوية
+                  // يفضل وضعها على الحافة المعاكسة للغة (اليمين للإنجليزية، اليسار للعربية)
+                  // هنا سنضعها على اليمين (نهاية الـ Stack)
+                  left: 10,
+                  child: GestureDetector(
+                    onTap: () {
+                      shareProduct(
+                        _product.id,
+                        _product.product_name,
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      // خلفية شبه شفافة
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.4), // أسود شفاف بنسبة 40%
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.share,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),),
             SizedBox(height: 16),
             // اسم المنتج والسعر
             Row(
@@ -359,7 +415,7 @@ class _ProductBody extends State<ProductBody> {
                   );
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('فشل تحميل بيانات المتجر')),
+                    SnackBar(content: Text('$error_store_loading_data_m')),
                   );
                 }
               },
@@ -393,12 +449,13 @@ class _ProductBody extends State<ProductBody> {
                 Icon(Icons.favorite, color: Colors.red, size: 24),
                 SizedBox(width: 10),
                 Text(
-                  'عدد المحبين: $_likesCount',
+                  '$a_likes_count: $_likesCount',
                   style: TextStyle(fontSize: 18, color: Colors.grey[700]),
                 ),
               ],
             ),
-            SizedBox(height: 15),
+
+            SizedBox(height: 16),
 
             // نوع المنتج
             Row(
@@ -440,12 +497,12 @@ class _ProductBody extends State<ProductBody> {
                 ),
                 SizedBox(width: 10),
                 Text(
-                  'حالة التوفر:',
+                  '$availability_status:',
                   style: TextStyle(fontSize: 18, color: Colors.grey[800]),
                 ),
                 SizedBox(width: 8),
                 Text(
-                  _product.product_available == 1 ? "متوفر" : "غير متوفر",
+                  _product.product_available == 1 ? "$a_available" : "$a_not_available",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -462,7 +519,29 @@ class _ProductBody extends State<ProductBody> {
                 ],
               ],
             ),
-            SizedBox(height: 30),
+            SizedBox(height: 32), // زيادة المسافة قبل الـ QR
+
+            // QR في المنتصف
+            Center(
+              child: Column(
+                children: [            QrImageView(
+              data: shareUrl_data_product,
+              version: QrVersions.auto,
+              size: 160.0,
+              backgroundColor: Colors.white,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'QR Code للمنتج',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
+          ],
+        ),
+      ),
           ],
         ),
       ),

@@ -89,7 +89,7 @@ class _EditAnnouncement extends State<EditAnnouncement> {
                   children: [
                   image_logo_b,
                   SizedBox(height: 16),
-                  Text("تعديل إعلان", style: style_text_titel),
+                  Text(a_edit_announcement_title, style: style_text_titel),
                   SizedBox(height: 16),
                   TextFormField(
                     controller: _announcementNoteController,
@@ -101,10 +101,10 @@ class _EditAnnouncement extends State<EditAnnouncement> {
                     maxLength: 60,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return "رجاء ادخال نص الإعلان";
+                        return a_please_enter_announcement_text;
                       }
                       if (value.length > 60) {
-                        return 'لا يجوز أن يكون الإعلان أكثر من 60 محرف';
+                        return a_announcement_max_length_error;
                       }
                       return null;
                     },
@@ -123,7 +123,7 @@ class _EditAnnouncement extends State<EditAnnouncement> {
                           keyboardType: TextInputType.name,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return "رجاء ادخال صورة الإعلان";
+                              return a_please_enter_announcement_image;
                             }
                             return null;
                           },
@@ -164,12 +164,12 @@ class _EditAnnouncement extends State<EditAnnouncement> {
                               );
 
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('تم تعديل الإعلان بنجاح!')),
+                                SnackBar(content: Text(a_announcement_updated_success)),
                               );
                               Navigator.pop(context);
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('فشل في تعديل الإعلان: $e')),
+                                SnackBar(content: Text('$a_announcement_update_failed: $e')),
                               );
                             } finally {
                               setState(() => _isLoading = false);

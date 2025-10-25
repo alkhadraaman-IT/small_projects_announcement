@@ -3,8 +3,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://127.0.0.1:8000/api';
-  static const String baseUrlImg = 'http://127.0.0.1:8000/storage/';
+  static const String ip_server = 'http://127.0.0.1:8000';
+  static const String baseUrl = '$ip_server/api';
+  static const String baseUrlImg = '$ip_server/storage/';
 
   final http.Client client;
   String? _token;

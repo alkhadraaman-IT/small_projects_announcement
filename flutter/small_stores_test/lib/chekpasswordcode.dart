@@ -30,7 +30,7 @@ class _ChekPasswordCode extends State<ChekPasswordCode> {
 
   Future<void> _verifyCode() async {
     if (_codeController.text.isEmpty) {
-      showError("يرجى إدخال كود التحقق");
+      showError(a_please_enter_verification_code);
       return;
     }
 
@@ -55,7 +55,7 @@ class _ChekPasswordCode extends State<ChekPasswordCode> {
 
       if (response.body.trim().startsWith('<!DOCTYPE') ||
           response.body.trim().startsWith('<html>')) {
-        showError("حدث خطأ في الخادم (صفحة HTML)");
+        showError(a_server_error);
         return;
       }
 
@@ -63,7 +63,7 @@ class _ChekPasswordCode extends State<ChekPasswordCode> {
       print('Response Data: $responseData');
 
       if (response.statusCode == 200) {
-        showSuccess("تم التحقق بنجاح");
+        showSuccess(a_code_verified_success);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -71,9 +71,9 @@ class _ChekPasswordCode extends State<ChekPasswordCode> {
           ),
         );
       } else if (response.statusCode == 401) {
-        showError(responseData['message'] ?? "كود التحقق غير صحيح");
+        showError(responseData['message'] ?? a_invalid_code);
       } else if (response.statusCode == 422) {
-        showError(responseData['message'] ?? "بيانات غير صحيحة (خطأ 422)");
+        showError(responseData['message'] ?? a_incorrect_data);
         print('=== تفاصيل خطأ 422 ===');
         print('Email sent: ${widget.email}');
         print('Code sent: ${_codeController.text.trim()}');
@@ -84,9 +84,10 @@ class _ChekPasswordCode extends State<ChekPasswordCode> {
     } catch (e) {
       print('Error: $e');
       if (e is FormatException) {
-        showError("الخادم يعيد بيانات غير صحيحة");
+        showError(a_server_returns_invalid_data);
+        //showError("${a_error_occurred}: ${responseData['message'] ?? response.statusCode}");
       } else {
-        showError("خطأ في الاتصال: $e");
+        showError("$a_connection_error: $e");
       }
     } finally {
       setState(() {
@@ -110,7 +111,7 @@ class _ChekPasswordCode extends State<ChekPasswordCode> {
             image_restpassword,
             SizedBox(height: 24),
             Text(
-              "ادخل الكود المرسل إلى",
+                a_enter_code_sent_to,
               style: style_text_titel
             ),
             SizedBox(height: 8),
@@ -125,7 +126,7 @@ class _ChekPasswordCode extends State<ChekPasswordCode> {
             SizedBox(height: 16),
             // جملة "تحقق من البريد" فوق مربع الإدخال
             Text(
-              "تحقق من بريدك الإلكتروني للحصول على كود التحقق",
+              a_check_your_email,
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
@@ -137,12 +138,11 @@ class _ChekPasswordCode extends State<ChekPasswordCode> {
             TextField(
               controller: _codeController,
               decoration: InputDecoration(
-                labelText: "كود التحقق",
+                labelText: a_verification_code,
                 prefixIcon: Icon(Icons.verified_user_outlined),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-               // hintText: "ادخل الرمز المكون من 5 أرقام",
               ),
               keyboardType: TextInputType.number,
               maxLength: 5,
@@ -173,7 +173,7 @@ class _ChekPasswordCode extends State<ChekPasswordCode> {
                    // Text("جاري التحقق..."),
                   ],
                 )
-                    : Text("تأكيد الكود"),
+                    : Text(a_confirm_code),
               ),
             )
           ],

@@ -12,6 +12,7 @@ import 'package:small_stores_test/models/usermodel.dart';
 import 'package:small_stores_test/style.dart';
 import 'package:small_stores_test/variables.dart';
 
+import 'CreateUserView.dart';
 import 'apiService/api_service.dart';
 import 'apiService/auth_service_api.dart';
 
@@ -21,8 +22,8 @@ class Login extends StatefulWidget {
 }
 
 class _Login extends State<Login> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passWordController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController(text: 'user1@test.com');
+  final TextEditingController _passWordController = TextEditingController(text: '123');
 
   bool isPasswordVisible = false;
   final _formKey = GlobalKey<FormState>();
@@ -68,7 +69,7 @@ class _Login extends State<Login> {
                     validator: (value) {
                       if (value == null || value.isEmpty) return a_email_m;
                       if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.\w+$').hasMatch(value)) {
-                        return 'البريد الإلكتروني غير صالح';
+                        return a_invalid_email_error;
                       }
                       return null;
                     },
@@ -114,7 +115,7 @@ class _Login extends State<Login> {
                             MaterialPageRoute(builder: (context) => ForgotPasswordPage()),
                           );
                         },
-                        child: Text("نغير كلمة المرور باستخدام البريد الإلكتروني", style: style_text_button_normal(color_main), textDirection: TextDirection.rtl,textAlign: TextAlign.right,),
+                        child: Text(a_reset_password_via_email, style: style_text_button_normal(color_main), textDirection: TextDirection.rtl,textAlign: TextAlign.right,),
                       ),
                     ],
                   ),
@@ -158,7 +159,7 @@ class _Login extends State<Login> {
 
                             if (user == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('فشل في تكوين بيانات المستخدم')),
+                                SnackBar(content: Text(a_user_data_failed)),
                               );
                               return;
                             }
@@ -184,20 +185,20 @@ class _Login extends State<Login> {
                             }
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('بيانات تسجيل الدخول غير صحيحة')),
+                              SnackBar(content: Text(a_invalid_credentials)),
                             );
                           }
                         } catch (e) {
-                          String errorMessage = 'فشل تسجيل الدخول';
+                          String errorMessage = a_login_failed;
 
                           if (e.toString().contains('البريد الإلكتروني غير مسجل')) {
-                            errorMessage = 'البريد الإلكتروني غير مسجل في النظام';
+                            errorMessage = a_email_not_registered;
                           } else if (e.toString().contains('الحساب محظور')) {
-                            errorMessage = 'الحساب محظور. يرجى التواصل مع الدعم';
+                            errorMessage = a_account_banned;
                           } else if (e.toString().contains('غير صحيحة')) {
-                            errorMessage = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+                            errorMessage = a_invalid_credentials;
                           } else {
-                            errorMessage = 'حدث خطأ غير متوقع: $e';
+                            errorMessage = '$a_unexpected_error: $e';
                           }
 
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -228,7 +229,7 @@ class _Login extends State<Login> {
                     ),
                   ),
                   SizedBox(height: 16),
-                  /*Column(
+                  Column(
                     mainAxisAlignment: MainAxisAlignment.center, // ← تمركز العناصر في المنتصف
                     children: [
                       Text(
@@ -248,7 +249,7 @@ class _Login extends State<Login> {
                         ),
                       )
                     ],
-                  ),*/
+                  ),
                 ],
               ),
             ),

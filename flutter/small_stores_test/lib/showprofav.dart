@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:share_plus/share_plus.dart';
 
 import '../apiService/api_service.dart';
 import '../apiService/favorit_api.dart';
@@ -14,39 +13,21 @@ import 'product.dart';
 import 'style.dart';
 import 'variables.dart';
 
-class ShowProduct extends StatefulWidget {
+class ShowProFav extends StatefulWidget {
   final int product_id;
   final User user;
 
-  ShowProduct({required this.product_id, required this.user});
+  ShowProFav({required this.product_id, required this.user});
 
   @override
-  _ShowProduct createState() => _ShowProduct();
+  _ShowProFav createState() => _ShowProFav();
 }
 
-class _ShowProduct extends State<ShowProduct> {
+class _ShowProFav extends State<ShowProFav> {
   ProductModel? _product;
   Favorit? _existingFavorite;
   bool _isLoading = true;
   int _likesCount = 0;
-
-
-  /*
-  //
-  void shareProduct(int productId, String productName) {
-    // 1. رابط صفحة الهبوط
-    final String baseUrl = 'https://yourplatform.com/product-share'; // ⬅️ تأكدي من استبدال هذا برابط منصتك الحقيقي
-
-    // 2. دمج رابط صفحة الهبوط مع ID المنتج
-    final String shareLink = '$baseUrl?id=$productId';
-
-    final String message =
-        'شاهد هذا المنتج المميز: $productName\n'
-        'لمشاهدة التفاصيل وحفظه في المفضلة، حمل تطبيقنا الآن!\n'
-        '$shareLink'; // هذا هو الرابط الذي سيتم مشاركته
-
-    Share.share(message); // استخدام حزمة share_plus
-  }*/
 
   @override
   void initState() {
@@ -126,6 +107,8 @@ class _ShowProduct extends State<ShowProduct> {
       print('Error updating likes count: $e');
     }
   }
+
+
 
   // الدالة الرئيسية للتعامل مع المفضلة
   Future<void> _handleFavorite() async {
@@ -210,57 +193,20 @@ class _ShowProduct extends State<ShowProduct> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //appBar: CustomAppBar(),
-      //drawer: CustomDrawer(user: widget.user),
-        body: Stack(
-          children: [
-            if (_product != null)
-              ProductBody(
-                product_id: widget.product_id,
-                onProductLoaded: (product) {},
-                likesCount: _likesCount, user: widget.user,
-              ),
-            if (_isLoading)
-              Center(child: CircularProgressIndicator()), // مع نص تحميل إذا بدك
-          ],
-        ),
-       /* floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: _isLoading
-            ? SizedBox()
-            : Padding(
-            padding: const EdgeInsets.all(16.0), // لتوفير مساحة حول الأزرار
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, // لتفريق الأزرار إلى اليمين واليسار
-                children: <Widget>[
-
-                  // ⬅️ الزر الأول: زر المشاركة (على اليسار)
-                  FloatingActionButton(
-                    heroTag: "shareFab", // HeroTag ضروري لزرين
-                    onPressed: () {
-                      if (_product != null) {
-                        shareProduct(
-                          widget.product_id,
-                          _product!.product_name,
-                        );
-                      }
-                    },
-                    backgroundColor: color_main, // لون مميز للمشاركة
-                    child: Icon(Icons.share, color: Colors.white, size: 28),
-                  ),
-
-                  // ➡️ الزر الثاني: زر المفضلة (على اليمين)
-                  // نستخدم عمود Column هنا لتجميع زر المفضلة والنص التوضيحي (إذا أردتِ إعادته)
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      FloatingActionButton(
-                        heroTag: "favoriteFab", // HeroTag ضروري لزرين
-                        onPressed: _handleFavorite,
-                        backgroundColor: _getButtonColor(),
-                        child: Icon(Icons.favorite, color: _getIconColor(), size: 28),
-                      ),
-                      */
-
+      appBar: CustomAppBar(),
+      drawer: CustomDrawer(user: widget.user),
+      body: Stack(
+        children: [
+          if (_product != null)
+            ProductBody(
+              product_id: widget.product_id,
+              onProductLoaded: (product) {},
+              likesCount: _likesCount, user: widget.user,
+            ),
+          if (_isLoading)
+            Center(child: CircularProgressIndicator()), // مع نص تحميل إذا بدك
+        ],
+      ),
       floatingActionButton: _isLoading
           ? SizedBox()
           : Column(
@@ -272,8 +218,6 @@ class _ShowProduct extends State<ShowProduct> {
             backgroundColor: _getButtonColor(),
             child: Icon(Icons.favorite, color: _getIconColor(), size: 28),
           ),
-
-
           /* SizedBox(height: 8),
           // نص توضيحي
           Container(
@@ -298,8 +242,8 @@ class _ShowProduct extends State<ShowProduct> {
               ),
             ),
           ),*/
-                    ],
-                  ),
+        ],
+      ),
     );
   }
 }

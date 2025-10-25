@@ -141,4 +141,19 @@ class UserApi {
   Future<void> deleteUser(int id) async {
     await apiService.patch('users/delete/$id', {'state': 0});
   }
+
+  Future<void> no_deleteUser(int id) async {
+    await apiService.patch('users/no_delete/$id', {'state': 0});
+  }
+
+  Future<List<User>> getno_deleteUser() async {
+    try {
+      final data = await apiService.get('users/view/no_delete');
+      print('API Response: $data'); // أضف هذا السطر
+      return (data as List).map((user) => User.fromJson(user)).toList();
+    } catch (e) {
+      print('Error in getUsers: $e');
+      throw Exception('Failed to load users');
+    }
+  }
 }

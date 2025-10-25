@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:small_stores_test/models/storemodel.dart';
 import 'package:small_stores_test/product.dart';
 
+import 'ShowMyProductCommentData.dart';
 import 'addproduct.dart';
 import 'apiService/api_service.dart';
 import 'apiService/product_api.dart';
@@ -13,6 +14,7 @@ import 'models/productmodel.dart';
 import 'models/typemodel.dart';
 import 'models/usermodel.dart';
 import 'showproduct.dart';
+import 'showproductcommentdata.dart';
 import 'style.dart';
 import 'variables.dart';
 
@@ -66,6 +68,12 @@ class _ProductAllBody extends State<ProductAllBody> {
   int? _selectedTypeId;
   bool _isLoading = true;
   String _errorMessage = '';
+
+  String _getTranslatedTypeName(ProductType type) {
+    return language_app == "ar"
+        ? type.type_name
+        : (type.type_name_english ?? type.type_name);
+  }
 
   @override
   void initState() {
@@ -153,7 +161,7 @@ class _ProductAllBody extends State<ProductAllBody> {
           TextFormField(
             controller: _searchController,
             decoration: InputDecoration(
-              labelText: "بحث عن منتج",
+              labelText: product_search,
               suffixIcon: Icon(Icons.search),
               filled: true,
               fillColor: Colors.grey[200],
@@ -189,7 +197,7 @@ class _ProductAllBody extends State<ProductAllBody> {
                         ),
                         child: Center(
                           child: Text(
-                            'كل المنتجات',
+                            language_app == "ar" ? "كل المنتجات" : "All Products",
                             style: TextStyle(
                               color: _selectedTypeId == null ? color_main : Colors.white,
                               fontWeight: FontWeight.bold,
@@ -219,7 +227,7 @@ class _ProductAllBody extends State<ProductAllBody> {
                           ),
                           child: Center(
                             child: Text(
-                              type.type_name,
+                              _getTranslatedTypeName(type), // استخدام الدالة المترجمة
                               style: TextStyle(
                                 color: _selectedTypeId == type.id ? color_main : Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -241,7 +249,7 @@ class _ProductAllBody extends State<ProductAllBody> {
 
           Align(
             alignment: Alignment.centerRight,
-            child: Text('المنتجات', style: style_text_titel),
+            child: Text('$a_show_product_t', style: style_text_titel),
           ),
           SizedBox(height: 16),
 
@@ -251,7 +259,7 @@ class _ProductAllBody extends State<ProductAllBody> {
                 : _errorMessage.isNotEmpty
                 ? Center(child: Text(_errorMessage))
                 : _filteredProducts.isEmpty
-                ? Center(child: Text('لا توجد منتجات'))
+                ? Center(child: Text('$products_not_found'))
                 : GridView.builder(
               // استخدام GridView.builder لأداء أفضل
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -269,15 +277,16 @@ class _ProductAllBody extends State<ProductAllBody> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => widget.page_view
-                            ? Product(
-                          product_id: product.id,
-                          class_id: widget.store.class_id,
+                            ? ShowMyProductCommentData(
+                          product: product,
+                          store: widget.store,
                           user: widget.user,
                         )
-                            : ShowProduct(
-                          product_id: product.id,
+                            : ShowProductCommentData(
+                          product: product,
+                          store: widget.store,
                           user: widget.user,
-                        ),
+                        )
                       ),
                     );
                   },

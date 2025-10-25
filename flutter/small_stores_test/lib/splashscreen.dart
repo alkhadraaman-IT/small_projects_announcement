@@ -13,7 +13,7 @@ import 'style.dart';
 import 'variables.dart';
 import 'apiService/api_service.dart'; // مكان ملف ApiService
 
-// ✅ أنشئ نسخة واحدة من ApiService (global)
+//  أنشئ نسخة واحدة من ApiService (global)
 final apiService = ApiService(client: http.Client());
 
 class Splashscreen extends StatefulWidget {
@@ -36,7 +36,7 @@ class _Splashscreen extends State<Splashscreen> {
     String? access_token = prefs.getString('access_token');
     int? userType = prefs.getInt('userType');
 
-    // ✅ حمّل التوكن بالـ ApiService (مرة وحدة بس)
+    //  حمّل التوكن بالـ ApiService (مرة وحدة بس)
     await apiService.loadTokenFromStorage();
 
     await Future.delayed(const Duration(seconds: 3)); // وقت السبلاتش

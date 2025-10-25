@@ -26,7 +26,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     final email = _emailController.text.trim();
 
     if (email.isEmpty) {
-      showError('يرجى إدخال البريد الإلكتروني');
+      showError(a_email_m);
       return;
     }
 
@@ -46,10 +46,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         );
       } else {
         final error = jsonDecode(response.body);
-        showError(error["message"] ?? "البريد الإلكتروني غير موجود");
+        showError(error["message"] ?? "$a_email_notfound");
       }
     } catch (e) {
-      showError('حدث خطأ: $e');
+      showError('$a_error_occurred: $e');
     }
   }
 
@@ -68,12 +68,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             children: [
               image_restpassword,
               SizedBox(height: 16),
-              Text("ادخل بريدك الإلكتروني لإرسال كود التحقق",style: style_text_titel,),
+              Text(a_enter_email_for_code,style: style_text_titel,),
               SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
-                  labelText: "البريد الإلكتروني",
+                  labelText: a_email_l,
                   prefixIcon: Icon(Icons.email),
                 ),
                 keyboardType: TextInputType.emailAddress,
@@ -84,7 +84,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 child: ElevatedButton(
                   onPressed: _handleSendCode,
                   style: styleButton(color_main),
-                  child: Text("إرسال"),
+                  child: Text(a_send_code),
                 ),
               ),
 

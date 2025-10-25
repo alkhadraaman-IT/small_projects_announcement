@@ -12,24 +12,24 @@ import 'profile.dart';
 import 'style.dart';
 import 'variables.dart';
 
-class ShowProfile extends StatefulWidget {
+class ShowFilereQuests extends StatefulWidget {
   final User user;
 
-  const ShowProfile({Key? key, required this.user}) : super(key: key);
+  const ShowFilereQuests({Key? key, required this.user}) : super(key: key);
 
   @override
-  _ShowProfile createState() => _ShowProfile();
+  _ShowFilereQuests createState() => _ShowFilereQuests();
 }
 
-class _ShowProfile extends State<ShowProfile> {
+class _ShowFilereQuests extends State<ShowFilereQuests> {
   // دالة لعرض تأكيد الحذف بخطوتين
   Future<void> _showDeleteConfirmation(BuildContext context) async {
     // الخطوة الأولى: تأكيد الحذف
     bool? firstConfirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(a_confirm_delete_l, style: style_text_titel),
-        content: Text(a_delete_user_question , style: style_text_normal),
+        title: Text("تفعيل الحساب", style: style_text_titel),
+        content: Text("هل تريد تفعيل هذا الحساب؟" , style: style_text_normal),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -48,8 +48,8 @@ class _ShowProfile extends State<ShowProfile> {
       bool? finalConfirm = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text(a_final_confirm_title, style: style_text_titel),
-          content: Text(a_delete_user_final_warning , style: style_text_normal),
+          title: Text("تأكيد", style: style_text_titel),
+          content: Text("هل انت متاكد من تفعيل الحساب سيحق له فعل وظائفه" , style: style_text_normal),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
@@ -73,11 +73,11 @@ class _ShowProfile extends State<ShowProfile> {
   Future<void> _deleteUser() async {
     try {
       final api = UserApi(apiService: ApiService(client: http.Client()));
-      await api.deleteUser(widget.user.id);
+      await api.no_deleteUser(widget.user.id);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(a_user_deleted_success ),
-      ));
+          SnackBar(content: Text(a_user_deleted_success ),
+          ));
 
       Navigator.pop(context); // الرجوع بعد الحذف
     } catch (e) {
@@ -93,7 +93,7 @@ class _ShowProfile extends State<ShowProfile> {
       body: ProfileBody(user_id: widget.user.id),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showDeleteConfirmation(context),
-        child: Icon(Icons.delete, color: Colors.white),
+        child: Icon(Icons.lock_open, color: Colors.white),
         backgroundColor: color_main,
       ),
     );

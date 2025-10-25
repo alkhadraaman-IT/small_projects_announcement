@@ -5,6 +5,7 @@ import 'package:small_stores_test/appbar.dart';
 import 'package:small_stores_test/home.dart';
 import 'package:small_stores_test/mystore.dart';
 import 'package:small_stores_test/style.dart';
+import 'package:small_stores_test/userdata.dart';
 import 'package:small_stores_test/variables.dart';
 import 'announcementdata.dart';
 import 'drawer.dart';

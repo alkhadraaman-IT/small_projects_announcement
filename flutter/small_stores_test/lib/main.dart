@@ -25,10 +25,12 @@ import 'showstoredata.dart';
 import 'splashscreen.dart';
 import 'store.dart';
 import 'style.dart';
+import 'variables.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await loadColor(); // تحميل اللون من الذاكرة
+  await loadLanguage(); // تحميل اللغة من الذاكرة
   runApp(MyApp());
 }
 
@@ -42,6 +44,14 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> {
   void updateTheme() {
     setState(() {}); // يعيد بناء الـ MaterialApp باللون الجديد
+  }
+
+
+  void updateLanguage(String lang) async {
+    await saveLanguage(lang);
+    setState(() {
+      language_app = lang;
+    });
   }
 
   @override
@@ -59,7 +69,7 @@ class MyAppState extends State<MyApp> {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      locale: const Locale('ar'),
+      locale: Locale(language_app), // استخدام اللغة المحفوظة
       title: 'Dukkani',
       theme: ThemeData(
         scaffoldBackgroundColor: color_background,
@@ -82,11 +92,11 @@ class MyAppState extends State<MyApp> {
       ),
       builder: (context, child) {
         return Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: language_app == "ar" ? TextDirection.rtl : TextDirection.ltr,
           child: child!,
         );
       },
-      home: Login(),
+      home: Splashscreen(),
     );
   }
 }

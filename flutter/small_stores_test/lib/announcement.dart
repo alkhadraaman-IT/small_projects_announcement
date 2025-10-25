@@ -99,7 +99,7 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      print('خطأ في جلب الإعلانات: $e');
+      print('$a_announcements_loading_error: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -142,7 +142,7 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
             SizedBox(width: 8),
             Expanded(
               child: Text(
-                'تم تحديد تاريخ البداية: ${start.year}/${start.month}/${start.day}',
+                '$a_start_date_selected: ${start.year}/${start.month}/${start.day}',
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -187,7 +187,7 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
               SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'تم تحديد تاريخ النهاية: ${end.year}/${end.month}/${end.day}',
+                  '$a_end_date_selected: ${end.year}/${end.month}/${end.day}',
                   style: TextStyle(color: Colors.white),
                 ),
               ),
@@ -208,7 +208,7 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
               SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'تم تحديد النطاق الزمني بنجاح!',
+                  a_date_range_confirmation,
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -245,7 +245,7 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                   child: TextFormField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      labelText: 'ابحث عن إعلان أو متجر',
+                      labelText: a_search_announcement_hint,
                       suffixIcon: Icon(Icons.search),
                       filled: true,
                       fillColor: Colors.grey[200],
@@ -265,9 +265,8 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                   ),
                   child: IconButton(
                     icon: Icon(Icons.calendar_today, color: Colors.white, size: 24),
-                    tooltip: _startDate == null
-                        ? "اختر نطاق زمني"
-                        : "مسح الفلترة",
+                    tooltip: _startDate == null ? a_choose_date_range : a_clear_filter,
+
                     onPressed: () {
                       if (_startDate == null) {
                         _pickDateRange(); // يفتح اختيار النطاق
@@ -308,7 +307,7 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'النطاق الزمني المحدد:',
+                              a_selected_date_range,
                               style: style_text_normal.copyWith(
                                 color: color_main,
                                 fontWeight: FontWeight.bold,
@@ -354,7 +353,7 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
               child: _isLoading
                   ? Center(child: CircularProgressIndicator())
                   : _filteredAnnouncements.isEmpty
-                  ? Center(child: Text('لا توجد إعلانات حالياً'))
+                  ? Center(child: Text(a_no_announcements))
                   : GridView.builder(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
@@ -394,20 +393,8 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                     storeImage = AssetImage('assets/images/logo.png');
                   }
 
+
                   return GestureDetector(
-                    onTap: () {
-                      if (store != null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ShowStoreData(
-                              store: store,
-                              user: widget.user,
-                            ),
-                          ),
-                        );
-                      }
-                    },
                     child: Card(
                       margin: EdgeInsets.zero,
                       shape: RoundedRectangleBorder(
@@ -416,6 +403,7 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                       clipBehavior: Clip.antiAlias,
                       child: Stack(
                         children: [
+                          // صورة الإعلان
                           Container(
                             width: double.infinity,
                             height: double.infinity,
@@ -426,6 +414,8 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                               ),
                             ),
                           ),
+
+                          // تدرج أسفل الإعلان
                           Align(
                             alignment: Alignment.bottomCenter,
                             child: Container(
@@ -442,12 +432,15 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                               ),
                             ),
                           ),
+
+                          // معلومات أسفل الإعلان
                           Positioned(
                             bottom: 12,
                             left: 12,
                             right: 12,
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   children: [
@@ -465,15 +458,19 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                                           );
                                         }
                                       },
-                                      child: CircleAvatar(
-                                        backgroundImage: storeImage,
-                                        radius: 16,
+                                      child: Tooltip(
+                                        message: a_view_store_tooltip,
+                                        child: CircleAvatar(
+                                          backgroundImage: storeImage,
+                                          radius: 16,
+                                        ),
                                       ),
                                     ),
                                     SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        store?.store_name ?? 'متجر ${item.store_id}',
+                                        store?.store_name ??
+                                            '$a_show_store_t ${item.store_id}',
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 16,
@@ -487,7 +484,9 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                                 SizedBox(height: 8),
                                 Text(
                                   item.announcement_description,
-                                  style: TextStyle(color: Colors.white, fontSize: 14),
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14),
                                   textAlign: TextAlign.right,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
@@ -495,7 +494,9 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                                 SizedBox(height: 4),
                                 Text(
                                   item.announcement_date,
-                                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                                  style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12),
                                   textAlign: TextAlign.right,
                                 ),
                               ],
@@ -508,6 +509,7 @@ class _AnnouncementScreen extends State<AnnouncementScreen> {
                 },
               ),
             ),
+
           ],
         ),
       ),

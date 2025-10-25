@@ -50,7 +50,7 @@ class _ShowProfileData extends State<ShowProfileData> {
                 tabs: [
                   Tab(text: a_user_data_t),
                   Tab(text: a_user_store_t),
-                  Tab(text: "إعلانات المستخدم"),
+                  Tab(text: user_ann),
                 ],/*
                 indicator: tabBarTheme.indicator, // مؤشر من الأنماط
                 labelColor: tabBarTheme.labelColor,

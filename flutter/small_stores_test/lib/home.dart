@@ -30,6 +30,7 @@ class _Home extends State<Home> {
   List<ClassModel> categories = [];
 
   int? selectedCategoryId;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -41,16 +42,23 @@ class _Home extends State<Home> {
   }
 
   Future<void> _loadData() async {
-    allStores = await futureStores;
-    categories = await futureCategories;
-    filteredStores = List.from(allStores);
-    setState(() {});
+    try {
+      allStores = await futureStores;
+      categories = await futureCategories;
+      filteredStores = List.from(allStores);
+    } catch (e) {
+      print('${a_error_loading_data}: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   void _applyFilters() {
     setState(() {
       filteredStores = allStores.where((store) {
-        final matchesSearch = store.store_name.contains(_searchController.text);
+        final matchesSearch = store.store_name.toLowerCase().contains(_searchController.text.toLowerCase());
         final matchesCategory =
             selectedCategoryId == null || store.class_id == selectedCategoryId;
         return matchesSearch && matchesCategory;
@@ -58,49 +66,66 @@ class _Home extends State<Home> {
     });
   }
 
-  IconData _getCategoryIcon(String className) {
-    switch (className) {
-      case 'زينة حفلات':
-        return Icons.celebration;
-      case 'برمجة':
-        return Icons.code;
-      case 'ملبوسات':
-        return Icons.checkroom;
-      case 'أحذية':
-        return Icons.directions_walk;
-      case 'أعمال يدوية':
-        return Icons.hail_rounded;
-      case 'غذائيات':
-        return Icons.fastfood;
-      case 'أدوات منزلية':
-        return Icons.kitchen;
-      case 'منظفات':
-        return Icons.cleaning_services;
-      case 'قرطاسية':
-        return Icons.edit;
-      case 'اكسسوارات':
-        return Icons.watch;
-      case 'مستحضرات تجميل':
-        return Icons.brush;
-      case 'تصميم':
-        return Icons.design_services;
-      case 'غير ذلك':
-        return Icons.more_horiz;
-      default:
-        return Icons.category;
-    }
+  // دالة للحصول على اسم الصنف المترجم
+  String _getTranslatedCategoryName(ClassModel category) {
+    return translateCategoryName({
+      'class_name': category.class_name,
+      'class_name_english': category.class_name_english,
+    });
   }
 
+  // عدل دالة العنوان الحالي
   String _currentTitle() {
-    if (selectedCategoryId == null) return 'كل المتاجر';
+    if (selectedCategoryId == null) return a_all_stores;
     final found = categories.where((c) => c.id == selectedCategoryId).toList();
-    return found.isNotEmpty ? found.first.class_name : 'كل المتاجر';
+    return found.isNotEmpty ? _getTranslatedCategoryName(found.first) : a_all_stores;
+  }
+
+  // عدل دالة الأيقونة
+  IconData _getCategoryIcon(ClassModel category) {
+    final translatedName = _getTranslatedCategoryName(category);
+
+    // استخدم الأسماء الإنجليزية للأيقونات (أو العربية)
+    if (language_app == "ar") {
+      switch (category.class_name) {
+        case 'زينة حفلات': return Icons.celebration;
+        case 'برمجة': return Icons.code;
+        case 'ملبوسات': return Icons.checkroom;
+        case 'أحذية': return Icons.directions_walk;
+        case 'أعمال يدوية': return Icons.handyman;
+        case 'غذائيات': return Icons.fastfood;
+        case 'أدوات منزلية': return Icons.kitchen;
+        case 'منظفات': return Icons.cleaning_services;
+        case 'قرطاسية': return Icons.edit;
+        case 'اكسسوارات': return Icons.watch;
+        case 'مستحضرات تجميل': return Icons.brush;
+        case 'تصميم': return Icons.design_services;
+        case 'غير ذلك': return Icons.more_horiz;
+        default: return Icons.category;
+      }
+    } else {
+      switch (category.class_name_english?.toLowerCase()) {
+        case 'party decorations': return Icons.celebration;
+        case 'programming': return Icons.code;
+        case 'clothing': return Icons.checkroom;
+        case 'shoes': return Icons.directions_walk;
+        case 'handicrafts': return Icons.handyman;
+        case 'nutrition': return Icons.fastfood;
+        case 'household tools': return Icons.kitchen;
+        case 'detergents': return Icons.cleaning_services;
+        case 'stationery': return Icons.edit;
+        case 'accessories': return Icons.watch;
+        case 'cosmetics': return Icons.brush;
+        case 'design': return Icons.design_services;
+        case 'otherwise': return Icons.more_horiz;
+        default: return Icons.category;
+      }
+    }
   }
 
   String _getImageUrl(String url) {
     if (url.isEmpty) return '';
     if (!url.startsWith('http')) {
-      // إذا الرابط نسبي، نضيف الـ baseUrlImg
       return ApiService.baseUrlImg + url.split('/storage/').last;
     }
     return url;
@@ -108,7 +133,6 @@ class _Home extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    // تحديد عدد الأعمدة بناءً على عرض الشاشة
     final screenWidth = MediaQuery.of(context).size.width;
     final crossAxisCount = screenWidth > 1200 ? 4 : (screenWidth > 800 ? 3 : 2);
 
@@ -145,69 +169,26 @@ class _Home extends State<Home> {
                 child: Row(
                   children: [
                     // زر عرض الكل
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: InkWell(
+                    _buildCategoryButton(
+                      icon: Icons.all_inclusive,
+                      isSelected: selectedCategoryId == null,
+                      onTap: () {
+                        setState(() {
+                          selectedCategoryId = null;
+                          _applyFilters();
+                        });
+                      },
+                    ),
+                    for (var category in categories)
+                      _buildCategoryButton(
+                        category: category,
+                        isSelected: selectedCategoryId == category.id,
                         onTap: () {
                           setState(() {
-                            selectedCategoryId = null;
+                            selectedCategoryId = category.id;
                             _applyFilters();
                           });
                         },
-                        child: Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: selectedCategoryId == null
-                                ? Colors.white
-                                : color_main,
-                            border: Border.all(
-                              color: color_main,
-                              width: selectedCategoryId == null ? 2 : 0,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.all_inclusive,
-                            color: selectedCategoryId == null
-                                ? color_main
-                                : Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                    for (var category in categories)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              selectedCategoryId = category.id;
-                              _applyFilters();
-                            });
-                          },
-                          child: Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: selectedCategoryId == category.id
-                                  ? Colors.white
-                                  : color_main,
-                              border: Border.all(
-                                color: color_main,
-                                width:
-                                selectedCategoryId == category.id ? 2 : 0,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              _getCategoryIcon(category.class_name),
-                              color: selectedCategoryId == category.id
-                                  ? color_main
-                                  : Colors.white,
-                            ),
-                          ),
-                        ),
                       ),
                   ],
                 ),
@@ -215,7 +196,7 @@ class _Home extends State<Home> {
 
               SizedBox(height: 16),
 
-              // العنوان الرئيسي (ديناميكي حسب الصنف المختار)
+              // العنوان الرئيسي
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Align(
@@ -231,16 +212,45 @@ class _Home extends State<Home> {
 
               // شبكة المتاجر
               Expanded(
-                child: allStores.isEmpty
-                    ? Center(child: CircularProgressIndicator())
+                child: _isLoading
+                    ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text(a_loading_data),
+                    ],
+                  ),
+                )
+                    : allStores.isEmpty
+                    ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.store_mall_directory, size: 64, color: Colors.grey),
+                      SizedBox(height: 16),
+                      Text(a_no_stores_available),
+                    ],
+                  ),
+                )
                     : filteredStores.isEmpty
-                    ? Center(child: Text('لا يوجد متاجر حالياً'))
+                    ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.search_off, size: 64, color: Colors.grey),
+                      SizedBox(height: 16),
+                      Text(my_stores_not_found),
+                    ],
+                  ),
+                )
                     : GridView.builder(
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: crossAxisCount,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    childAspectRatio: 1.2, // نسبة العرض إلى الارتفاع للبطاقة
+                    childAspectRatio: 1.2,
                   ),
                   itemCount: filteredStores.length,
                   itemBuilder: (context, index) {
@@ -275,8 +285,7 @@ class _Home extends State<Home> {
                             ),
                             Container(
                               decoration: BoxDecoration(
-                                borderRadius:
-                                BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(8),
                                 gradient: LinearGradient(
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
@@ -293,13 +302,11 @@ class _Home extends State<Home> {
                                 alignment: Alignment.bottomRight,
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       store.store_name,
-                                      style: style_text_normal_w
-                                          .copyWith(
+                                      style: style_text_normal_w.copyWith(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -319,8 +326,7 @@ class _Home extends State<Home> {
                                         Expanded(
                                           child: Text(
                                             store.store_place,
-                                            style:
-                                            style_text_normal_w.copyWith(
+                                            style: style_text_normal_w.copyWith(
                                               fontSize: 12,
                                             ),
                                             overflow: TextOverflow.ellipsis,
@@ -341,6 +347,42 @@ class _Home extends State<Home> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // دالة مساعدة لبناء أزرار الفئات
+  Widget _buildCategoryButton({
+    ClassModel? category,
+    required bool isSelected,
+    required VoidCallback onTap,
+    IconData? icon,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.white : color_main,
+            border: Border.all(
+              color: color_main,
+              width: isSelected ? 2 : 0,
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: icon != null
+              ? Icon(
+            icon,
+            color: isSelected ? color_main : Colors.white,
+          )
+              : Icon(
+            _getCategoryIcon(category!),
+            color: isSelected ? color_main : Colors.white,
           ),
         ),
       ),

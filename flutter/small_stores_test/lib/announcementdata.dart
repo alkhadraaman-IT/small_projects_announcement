@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:small_stores_test/announcement.dart';
 import 'package:small_stores_test/mystore.dart';
 import 'package:small_stores_test/style.dart';
 
-import 'drawer.dart';
 import 'models/usermodel.dart';
 import 'myannouncement.dart';
-import 'showmystore.dart' show ShowMyStore;
-import 'showprofile.dart';
-import 'variables.dart'; // تأكد من استيراد ملف الأنماط
+
+import 'variables.dart';
 
 class AnnouncementData extends StatefulWidget {
   final User user;
@@ -44,8 +41,8 @@ class _AnnouncementData extends State<AnnouncementData> with SingleTickerProvide
             child: TabBar(
               controller: _tabController,
               tabs: [
-                Tab(text: 'متاجري'),
-                Tab(text: 'إعلاناتي'),
+                Tab(text: '$my_store_l'),
+                Tab(text: '$my_announce_l'),
               ],
              /* indicator: tabBarTheme.indicator,
               labelColor: tabBarTheme.labelColor,

@@ -44,6 +44,7 @@ class _AddStore extends State<AddStore> {
 
   bool _isLoading = false;
   late StoreApi storeApi;
+  bool _isLoadingCategories = true;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -65,15 +66,26 @@ class _AddStore extends State<AddStore> {
     super.dispose();
   }
 
+  // دالة للحصول على الاسم المترجم للفئة
+  String _getTranslatedClassName(ClassModel classItem) {
+    return language_app == "ar"
+        ? classItem.class_name
+        : (classItem.class_name_english ?? classItem.class_name);
+  }
+
   Future<void> _loadStoreClasses() async {
     try {
       final classes = await ClassApi(apiService: ApiService(client: http.Client())).getClasses();
       setState(() {
         _storeClasses = classes;
+        _isLoadingCategories = false;
       });
     } catch (e) {
+      setState(() {
+        _isLoadingCategories = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل في تحميل الفئات: ${e.toString()}')),
+        SnackBar(content: Text('$a_loading_categories_failed: ${e.toString()}')),
       );
     }
   }
@@ -126,26 +138,38 @@ class _AddStore extends State<AddStore> {
                     value == null || value.isEmpty ? a_store_name_m : null,
                   ),
                   const SizedBox(height: 16),
+                  // فئة المتجر - القائمة المنسدلة
                   DropdownButtonFormField<int>(
                     value: _selectedClassId,
                     decoration: InputDecoration(
                       labelText: a_class_store_s,
-                      prefixIcon: Icon(Icons.type_specimen),
+                      prefixIcon: Icon(Icons.category),
+                      border: OutlineInputBorder(),
                     ),
                     items: _storeClasses.map((storeClass) {
                       return DropdownMenuItem<int>(
                         value: storeClass.id,
-                        child: Text(storeClass.class_name),
+                        child: Text(
+                          _getTranslatedClassName(storeClass),
+                          style: style_text_normal,
+                        ),
                       );
                     }).toList(),
                     onChanged: (int? value) {
                       setState(() {
                         _selectedClassId = value;
-                        _storeClassController.text = value.toString();
+                        _storeClassController.text = value?.toString() ?? '';
                       });
                     },
                     validator: (value) =>
                     value == null ? a_store_class_m : null,
+                    isExpanded: true,
+                    hint: _isLoadingCategories
+                        ? Text(a_loading_categories, style: style_text_normal)
+                        : Text(a_please_select_store_type, style: style_text_normal),
+                    disabledHint: _isLoadingCategories
+                        ? Text(a_loading_categories, style: style_text_normal)
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -267,10 +291,10 @@ class _AddStore extends State<AddStore> {
                             _webImage = null;
 
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('تم إضافة المتجر بنجاح ✅')),
+                              SnackBar(content: Text(a_store_added_success)),
                             );
                           } catch (e) {
-                            String errorMessage = "حدث خطأ غير متوقع ❌";
+                            String errorMessage = a_unexpected_error;
 
                             try {
                               // لو الـ API يرمى http.Response
@@ -282,7 +306,7 @@ class _AddStore extends State<AddStore> {
                                   final errors = body['errors'] as Map<String, dynamic>;
                                   errorMessage = errors.values.first[0];
                                 } else {
-                                  errorMessage = "فشل العملية: ${e.statusCode}";
+                                  errorMessage = "$a_operation_failed: ${e.statusCode}";
                                 }
                               } else {
                                 // Exception أو String

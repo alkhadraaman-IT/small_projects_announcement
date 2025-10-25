@@ -171,7 +171,7 @@ class CustomDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.bookmark, color: Colors.white),
-            title: const Text("نصيحة", style: drawerItemStyle),
+            title: Text(a_advice_d, style: drawerItemStyle),
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => Advice(user: user)),

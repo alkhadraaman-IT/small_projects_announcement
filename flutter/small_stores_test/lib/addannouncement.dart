@@ -62,7 +62,7 @@ class _AddAnnouncement extends State<AddAnnouncement> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل في اختيار الصورة: $e')),
+        SnackBar(content: Text('$a_image_pick_failed: $e')),
       );
     }
   }
@@ -71,7 +71,7 @@ class _AddAnnouncement extends State<AddAnnouncement> {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedImage == null && _webImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('يجب اختيار صورة للإعلان')),
+        SnackBar(content: Text(a_image_required)),
       );
       return;
     }
@@ -85,7 +85,7 @@ class _AddAnnouncement extends State<AddAnnouncement> {
       } else if (_selectedImage != null) {
         imageBytes = Uint8List.fromList(await _selectedImage!.readAsBytes());
       } else {
-        throw Exception('يجب اختيار صورة للإعلان');
+        throw Exception('$image_selected_ann');
       }
 
       await announcementApi.addAnnouncement(
@@ -104,11 +104,11 @@ class _AddAnnouncement extends State<AddAnnouncement> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تم إضافة الإعلان بنجاح!')),
+        SnackBar(content: Text(a_announcement_added_success)),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل في إضافة الإعلان: $e')),
+        SnackBar(content: Text('${a_announcement_add_failed}: $e')),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -151,10 +151,10 @@ class _AddAnnouncement extends State<AddAnnouncement> {
                     maxLength: 60,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return "رجاء ادخال نص الإعلان";
+                        return a_please_enter_announcement_text;
                       }
                       if (value.length > 60) {
-                        return 'لا يجوز أن يكون الإعلان أكثر من 60 محرف';
+                        return a_announcement_max_length_error;
                       }
                       return null;
                     },
@@ -172,7 +172,7 @@ class _AddAnnouncement extends State<AddAnnouncement> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return "رجاء اخال صورة الإعلان";
+                              return a_please_enter_announcement_image;
                             }
                             return null;
                           },
@@ -209,7 +209,7 @@ class _AddAnnouncement extends State<AddAnnouncement> {
                     child: ElevatedButton(
                       style: styleButton(color_main),
                       onPressed: _isLoading ? null : _submitAnnouncement,
-                      child: Text(_isLoading ? 'جاري الإضافة...' : a_add_b),
+                      child: Text(_isLoading ? a_adding_loading_text  : a_add_b),
                     ),
                   ),
                   SizedBox(height: 16),

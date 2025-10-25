@@ -55,7 +55,7 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
             matchesDate = (annDate.isAtSameMomentAs(_startDate!) || annDate.isAfter(_startDate!)) &&
                 (annDate.isAtSameMomentAs(_endDate!) || annDate.isBefore(_endDate!));
           } catch (e) {
-            print('خطأ في تحويل التاريخ: $e');
+            print('$a_date_conversion_error: $e');
             matchesDate = false;
           }
         }
@@ -92,7 +92,7 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
         _isLoading = false;
       });
     } catch (e) {
-      print('خطأ في جلب الإعلانات: $e');
+      print('$a_announcements_loading_error: $e');
       setState(() {
         _isLoading = false;
       });
@@ -108,12 +108,12 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
         _filteredAnnouncements = List.from(_announcements);
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تم حذف الإعلان بنجاح')),
+        SnackBar(content: Text(a_announcement_deleted_success)),
       );
     } catch (e) {
-      print('خطأ في حذف الإعلان: $e');
+      print('$a_announcement_delete_failed: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('فشل حذف الإعلان: $e')),
+        SnackBar(content: Text('$a_announcement_delete_failed: $e')),
       );
     }
   }
@@ -122,16 +122,16 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
     bool confirm = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('تأكيد الحذف', style: style_text_titel),
-        content: Text('هل تريد حذف هذا الإعلان؟', style: style_text_normal),
+        title: Text(a_delete_announcement_confirm, style: style_text_titel),
+        content: Text(a_delete_announcement_question, style: style_text_normal),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('إلغاء', style: style_text_button_normal(color_main)),
+            child: Text(a_cancel, style: style_text_button_normal(color_main)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('تأكيد الحذف', style: style_text_button_normal_red),
+            child: Text(a_confirm_delete_l, style: style_text_button_normal_red),
           ),
         ],
       ),
@@ -176,7 +176,7 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
             SizedBox(width: 8),
             Expanded(
               child: Text(
-                'تم تحديد تاريخ البداية: ${start.year}/${start.month}/${start.day}',
+                '$a_start_date_selected: ${start.year}/${start.month}/${start.day}',
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -221,7 +221,7 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
               SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'تم تحديد تاريخ النهاية: ${end.year}/${end.month}/${end.day}',
+                  '$a_end_date_selected: ${end.year}/${end.month}/${end.day}',
                   style: TextStyle(color: Colors.white),
                 ),
               ),
@@ -242,7 +242,7 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
               SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'تم تحديد النطاق الزمني بنجاح!',
+                  '$a_date_range_confirmation',
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -278,7 +278,7 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
                   child: TextFormField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      labelText: 'ابحث عن إعلان أو متجر',
+                      labelText: a_search_announcement_hint,
                       suffixIcon: Icon(Icons.search),
                       filled: true,
                       fillColor: Colors.grey[200],
@@ -298,9 +298,7 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
                   ),
                   child: IconButton(
                     icon: Icon(Icons.calendar_today, color: Colors.white, size: 24),
-                    tooltip: _startDate == null
-                        ? "اختر نطاق زمني"
-                        : "مسح الفلترة",
+                    tooltip: _startDate == null ? a_choose_date_range : a_clear_filter,
                     onPressed: () {
                       if (_startDate == null) {
                         _pickDateRange(); // يفتح اختيار النطاق
@@ -315,7 +313,7 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
 
             SizedBox(height: 16),
             Text(
-              'إعلاناتي',
+              a_my_announcements_title,
               style: style_text_titel,
               textAlign: TextAlign.right,
             ),
@@ -340,7 +338,7 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'النطاق الزمني المحدد:',
+                              a_selected_date_range,
                               style: style_text_normal.copyWith(
                                 color: color_main,
                                 fontWeight: FontWeight.bold,
@@ -385,7 +383,7 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
               child: _isLoading
                   ? Center(child: CircularProgressIndicator())
                   : _filteredAnnouncements.isEmpty
-                  ? Center(child: Text('لا توجد إعلانات حالياً'))
+                  ? Center(child: Text(a_no_announcements))
                   : GridView.builder(
                 gridDelegate:
                 SliverGridDelegateWithFixedCrossAxisCount(
@@ -492,12 +490,12 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
                           itemBuilder: (context) => [
                             PopupMenuItem(
                               value: 'edit',
-                              child: Text('تعديل',
+                              child: Text('$a_edit_option',
                                   style: style_text_normal),
                             ),
                             PopupMenuItem(
                               value: 'delete',
-                              child: Text('حذف',
+                              child: Text('$a_delete_option',
                                   style:
                                   style_text_button_normal_red),
                             ),
@@ -531,7 +529,7 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
                                     }
                                   },
                                   child: Tooltip(
-                                    message: 'عرض المتجر',
+                                    message: a_view_store_tooltip,
                                     child: CircleAvatar(
                                       backgroundImage: storeImage,
                                       radius: 16,
@@ -542,7 +540,7 @@ class _MyAnnouncementState extends State<MyAnnouncement> {
                                 Expanded(
                                   child: Text(
                                     store?.store_name ??
-                                        'متجر ${item.store_id}',
+                                        '$a_store_not_found ${item.store_id}',
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 16,

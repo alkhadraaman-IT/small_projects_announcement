@@ -214,21 +214,21 @@ class ProductApi {
     var streamedResponse = await request.send();
     var response = await http.Response.fromStream(streamedResponse);
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 201 || response.statusCode == 200 ) {
       final jsonData = jsonDecode(response.body);
       return ProductModel.fromJson(jsonData['product']);
     } else {
-      String errorMessage = "فشل الإضافة";
+      String errorMessage = "فشل التعديل";
 
       try {
         final jsonData = jsonDecode(response.body);
         if (jsonData is Map && jsonData.containsKey('message')) {
           errorMessage = jsonData['message']; // ✅ ناخذ الرسالة من السيرفر
         } else {
-          errorMessage = "فشل الإضافة: ${response.reasonPhrase}";
+          errorMessage = "فشل التعديل: ${response.reasonPhrase}";
         }
       } catch (_) {
-        errorMessage = "فشل الإضافة: ${response.reasonPhrase}";
+        errorMessage = "فشل التعديل: ${response.reasonPhrase}";
       }
 
       throw errorMessage; // 🔥 نرمي النص نفسه
